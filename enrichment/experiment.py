@@ -14,6 +14,7 @@ from enrichment_eval.fixtures import load_labels, load_public
 from enrichment_eval.scoring import decide_candidate, evaluate
 
 from .budget import ExperimentBudget, write_json
+from .atlas_diagnostics import sanitized_error
 from .freeze import manifest_digest, prepare, verify
 from .provider import BASELINE_POLICY, enrich_batch, propose_policy
 from .storage import EnrichmentStore
@@ -138,7 +139,7 @@ def execute(fixtures_root=FIXTURES, artifact_dir=ARTIFACTS):
     experiment_id = uuid4().hex
     result = {"experiment_id": experiment_id, "kind": "synthetic_semantic_experiment",
               "fixture_version": "semantic-v1", "freeze_sha256": manifest_digest(manifest),
-              "started_at": datetime.now(timezone.utc).isoformat(), "status": "preflight",
+              "started_at": datetime.now(timezone.utc).isoformat(), "status": "preflight", "active_stage": "connect_and_ping",
               "final_holdout_evaluated": False, "policies": {"baseline": dict(BASELINE_POLICY)},
               "runs": {}, "decision": {"accepted": False, "reason": "experiment_incomplete"}}
     client = None
@@ -150,12 +151,16 @@ def execute(fixtures_root=FIXTURES, artifact_dir=ARTIFACTS):
     try:
         client, normalizer = connect()
         store = EnrichmentStore(normalizer)
+        result["active_stage"] = "create_indexes"
         store.ensure_indexes()
+        result["active_stage"] = "snapshot_existing_raw"
         prior = raw_snapshots(normalizer)
         for split in products:
+            result["active_stage"] = "prepare_" + split + "_sources"
             sources[split] = store.prepare_sources(products[split], split, artifact_dir / "normalizer-sources")
         result.update(sources=sources, prior_raw=prior)
         # Freeze provenance is persisted and read before the first live request.
+        result["active_stage"] = "persist_freeze"
         store.experiments.insert_one({"_id": experiment_id, "freeze": manifest, "report": result})
         experiment_saved = True
         frozen = store.experiments.find_one({"_id": experiment_id}, {"freeze": 1})
@@ -168,6 +173,7 @@ def execute(fixtures_root=FIXTURES, artifact_dir=ARTIFACTS):
         write_json(artifact_dir / "report.json", result)
 
         def stage(variant, split, policy):
+            result["active_stage"] = variant + "_" + split
             report, predictions = run_stage(experiment_id=experiment_id, variant=variant, split=split,
                 policy=policy, products=products[split], labels=labels[split], taxonomy=taxonomy,
                 budget=budget, store=store, source=sources[split], freeze_hash=result["freeze_sha256"],
@@ -185,6 +191,7 @@ def execute(fixtures_root=FIXTURES, artifact_dir=ARTIFACTS):
         else:
             failures = proposal_failures(baseline_dev)
             if failures:
+                result["active_stage"] = "policy_proposal"
                 candidate, details = propose_policy(products["development"], baseline_outputs, failures,
                                                      BASELINE_POLICY, taxonomy, budget)
                 result["policies"]["candidate"] = candidate
@@ -196,13 +203,14 @@ def execute(fixtures_root=FIXTURES, artifact_dir=ARTIFACTS):
             stage("candidate", "development", candidate)
             candidate_val, _ = stage("candidate", "validation", candidate)
             result["decision"] = decide_candidate(baseline_val, candidate_val)
+        result["active_stage"] = "verify_final_persistence_and_integrity"
         assert_raw_unchanged(store, sources, prior)
         verify(fixtures_root, artifact_dir)
         result.update(status="completed", raw_unchanged=True, atlas_persistence_verified=True)
     except OpenAIError as failure:
         error = {"category": failure.category, "code": failure.code}
-    except PyMongoError:
-        error = {"category": "atlas", "code": "operation_failed"}
+    except PyMongoError as failure:
+        error = sanitized_error(failure)
     except Exception:
         error = {"category": "local", "code": "verification_failed"}
     finally:

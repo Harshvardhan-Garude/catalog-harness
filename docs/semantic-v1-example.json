@@ -1,0 +1,85 @@
+{
+  "actual_input_product": {
+    "fields": {
+      "description": "This SKU is a drinking cup for beverages, not a cup holder.",
+      "name": "Rail coffee cup",
+      "supplier_notes": "This exact SKU is only a rail-mounted holder for a separate cup, not a drinking vessel."
+    },
+    "normalized_product": {
+      "name": "Rail coffee cup",
+      "product_id": "P-sem-v1-dev-011",
+      "weight_g": 250.0
+    },
+    "source_record_id": "sem-v1-dev-011"
+  },
+  "actual_model_output": {
+    "category": "unknown",
+    "evidence": [
+      {
+        "excerpt": "a drinking cup for beverages",
+        "field": "category",
+        "label": "drinking_cup",
+        "source_field": "description"
+      },
+      {
+        "excerpt": "a rail-mounted holder for a separate cup",
+        "field": "category",
+        "label": "cup_holder",
+        "source_field": "supplier_notes"
+      }
+    ],
+    "primary_use": "unknown",
+    "review": [
+      {
+        "field": "category",
+        "reason": "Conflicting exact excerpts from description and supplier_notes for category: 'a drinking cup for beverages' vs 'a rail-mounted holder for a separate cup'."
+      },
+      {
+        "field": "primary_use",
+        "reason": "Conflicting exact excerpts from description and supplier_notes for primary_use implied by category conflict."
+      }
+    ],
+    "secondary_uses": [],
+    "source_record_id": "sem-v1-dev-011"
+  },
+  "experiment_id": "a33a4aedd2ba4ace89cb8a6ec023d178",
+  "full_request_local_path": "artifacts/enrichment-v1/request-13.json",
+  "full_request_sha256": "ed13ecfa72f91b8a35da6fef50097ff465ee603ea530630c46113ffabade579c",
+  "full_response_local_path": "artifacts/enrichment-v1/response-13.json",
+  "input_note": "One product from an actual four-product request; full request includes taxonomy, instructions, and schema.",
+  "label": "actual synthetic listing and actual model output, not a hand-authored prediction",
+  "model": "gpt-4.1-mini-2025-04-14",
+  "original_evidence_issues": [
+    {
+      "code": "evidence_not_asserted",
+      "field": "category",
+      "label": "drinking_cup"
+    },
+    {
+      "code": "evidence_not_asserted",
+      "field": "category",
+      "label": "cup_holder"
+    }
+  ],
+  "policy_version": "semantic-policy-v1-candidate",
+  "post_harness_output": {
+    "category": "unknown",
+    "evidence": [],
+    "primary_use": "unknown",
+    "review": [
+      {
+        "field": "primary_use",
+        "reason": "Conflicting exact excerpts from description and supplier_notes for primary_use implied by category conflict."
+      },
+      {
+        "field": "category",
+        "reason": "Harness abstained after literal evidence validation failed."
+      }
+    ],
+    "secondary_uses": [],
+    "source_record_id": "sem-v1-dev-011"
+  },
+  "request_ordinal": 13,
+  "run_id": "88bf2694ca4a48dea3aa75a0e8fddea0",
+  "stage": "candidate_development"
+}

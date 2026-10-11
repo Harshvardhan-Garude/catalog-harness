@@ -1,20 +1,98 @@
 {
-  "actual_model_input": null,
-  "actual_model_output": null,
-  "label": "synthetic-fixture experiment; no AI predictions produced",
-  "next_action": ".venv/bin/python -m enrichment.experiment run",
-  "report": {
-    "decision": {
-      "accepted": false,
-      "reason": "experiment_incomplete"
-    },
-    "error": {
-      "category": "atlas",
-      "code": "operation_failed"
-    },
-    "experiment_id": "1ea3a967416d4cc1b447013bf573fbee",
+  "independent_atlas_verification": {
+    "evaluations_reproduced": true,
+    "experiment_id": "a33a4aedd2ba4ace89cb8a6ec023d178",
     "final_holdout_evaluated": false,
-    "finished_at": "2026-10-11T20:43:36.291954+00:00",
+    "model_calls_added": 0,
+    "raw_unchanged": true,
+    "runs": [
+      {
+        "persisted_outputs": 24,
+        "run_id": "df865d3b659f4a98b7e12855a2c2041f",
+        "stage": "baseline_development"
+      },
+      {
+        "persisted_outputs": 12,
+        "run_id": "cb774929e7fd4f4badb369af9c1e9e9f",
+        "stage": "baseline_validation"
+      },
+      {
+        "persisted_outputs": 24,
+        "run_id": "88bf2694ca4a48dea3aa75a0e8fddea0",
+        "stage": "candidate_development"
+      },
+      {
+        "persisted_outputs": 12,
+        "run_id": "e5db5a4f835148168201c432f13fa4a5",
+        "stage": "candidate_validation"
+      }
+    ],
+    "status": "PASS",
+    "stored_experiment_matches": true
+  },
+  "label": "synthetic-fixture results; real OpenAI enrichment predictions",
+  "limitations": [
+    "One synthetic-fixture experiment; final holdout unused.",
+    "Development correct fields unchanged; validation unnecessary abstentions increased from one to two.",
+    "Candidate changes both instructions and review behavior; effects are not isolated."
+  ],
+  "next_action": ".venv/bin/python -m enrichment.experiment report",
+  "previous_attempts": [
+    {
+      "report": {
+        "decision": {
+          "accepted": false,
+          "reason": "experiment_incomplete"
+        },
+        "error": {
+          "category": "atlas",
+          "code": "operation_failed"
+        },
+        "experiment_id": "1ea3a967416d4cc1b447013bf573fbee",
+        "final_holdout_evaluated": false,
+        "finished_at": "2026-10-11T20:43:36.291954+00:00",
+        "fixture_version": "semantic-v1",
+        "freeze_sha256": "5474b4421fcf6f0ba083069329292c50d486b69fe24034d30642172719a22dd2",
+        "kind": "synthetic_semantic_experiment",
+        "policies": {
+          "baseline": {
+            "instruction_addendum": "",
+            "review_behavior": "report_only",
+            "version": "semantic-policy-v1-baseline"
+          }
+        },
+        "runs": {},
+        "started_at": "2026-10-11T20:43:05.992398+00:00",
+        "status": "blocked",
+        "usage": {
+          "calls": 0,
+          "tokens": null,
+          "unknown_usage_calls": 0
+        }
+      },
+      "source": "managed runtime"
+    },
+    {
+      "error": {
+        "category": "atlas",
+        "code": "operation_failed"
+      },
+      "experiment_id": "d6b87def758b499e9998a17f29b97514",
+      "model_calls": 0,
+      "source": "user-reported normal terminal",
+      "status": "blocked"
+    }
+  ],
+  "report": {
+    "active_stage": "verify_final_persistence_and_integrity",
+    "atlas_persistence_verified": true,
+    "decision": {
+      "accepted": true,
+      "reason": "validation_improved_without_more_unsupported_assertions"
+    },
+    "experiment_id": "a33a4aedd2ba4ace89cb8a6ec023d178",
+    "final_holdout_evaluated": false,
+    "finished_at": "2026-10-11T20:53:00.103231+00:00",
     "fixture_version": "semantic-v1",
     "freeze_sha256": "5474b4421fcf6f0ba083069329292c50d486b69fe24034d30642172719a22dd2",
     "kind": "synthetic_semantic_experiment",
@@ -23,16 +101,446 @@
         "instruction_addendum": "",
         "review_behavior": "report_only",
         "version": "semantic-policy-v1-baseline"
+      },
+      "candidate": {
+        "instruction_addendum": "Add a robust cross-source consistency check step to detect and handle direct conflicts between description and supplier_notes within the same listing. When mutually exclusive labels are asserted for the same field (category or primary_use) with credible exact excerpt evidence from both fields, the system must abstain on that entire conflicting field, returning 'unknown' for category or primary_use as applicable, and add a short review reason noting the internal conflict. This abstention applies even if one source fragment is explicitly stronger or more explicit. Leave unaffected fields unchanged. This prevents committing to incorrect labels forced by single-field evidence when direct conflicts exist. Continue to require exact, case-sensitive excerpt citation from source text supporting all asserted labels. Secondary_uses remain empty unless explicitly and independently supported by non-conflicting evidence. This addition refines conflict resolution to explicitly require abstaining on fields with strong internal evidence contradictions, avoiding incorrect inference or guesswork.",
+        "review_behavior": "abstain_invalid_evidence",
+        "version": "semantic-policy-v1-candidate"
       }
     },
-    "runs": {},
-    "started_at": "2026-10-11T20:43:05.992398+00:00",
-    "status": "blocked",
+    "prior_raw": {
+      "catalog-v1-development-s1101-n300": {
+        "count": 300,
+        "sha256": "9847fdee3fcaa1f8888c2f36ed2712af86dd16ff072682c6362616c03e87ef05"
+      }
+    },
+    "raw_unchanged": true,
+    "runs": {
+      "baseline_development": {
+        "atlas_persistence_verified": true,
+        "average_tokens_per_product": {
+          "input_tokens": 397.4166666666667,
+          "output_tokens": 105.875,
+          "total_tokens": 503.2916666666667
+        },
+        "development_failures": [
+          {
+            "category": "incorrect_label",
+            "field": "category",
+            "prediction": "drinking_cup",
+            "source_record_id": "sem-v1-dev-011"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "drink_beverages",
+            "source_record_id": "sem-v1-dev-011"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "category",
+            "prediction": "decorative_vessel",
+            "source_record_id": "sem-v1-dev-020"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "display_decoration",
+            "source_record_id": "sem-v1-dev-020"
+          }
+        ],
+        "evaluation_identity_sha256": "f8763965c34745bca492aeccbd03449ede341d62a7538d6587637e8bb40495fb",
+        "evaluation_labels_sha256": "849cbd88fafba149d0da673eb176bf747cc4bc99d1ed86079bc1a14be1cf0fb6",
+        "field_accuracy": 0.9444444444444444,
+        "fixture_version": "semantic-v1",
+        "inference_products": 24,
+        "kind": "synthetic_semantic_enrichment",
+        "model_calls": 6,
+        "objective": {
+          "correct_field_decisions": "strictly_greater",
+          "duplicate_outputs": 0,
+          "identical_fixture_identities_and_denominators": true,
+          "missing_outputs": 0,
+          "selection_split": "validation",
+          "unexpected_outputs": 0,
+          "unsupported_assertions": "no_increase",
+          "version": "semantic-v1-validation-objective-1"
+        },
+        "objective_version": "semantic-v1-validation-objective-1",
+        "overall": {
+          "correct_field_decisions": 68,
+          "duplicate_outputs": 0,
+          "evidence_issue_count": 0,
+          "incorrect_field_decisions": 4,
+          "missing_outputs": 0,
+          "necessary_abstentions": 23,
+          "total_expected": 24,
+          "total_field_decisions": 72,
+          "unexpected_outputs": 0,
+          "unnecessary_abstentions": 0,
+          "unsupported_assertions": 4
+        },
+        "policy_version": "semantic-policy-v1-baseline",
+        "raw_unchanged": true,
+        "representative_failures": [
+          {
+            "category": "incorrect_label",
+            "field": "category",
+            "prediction": "drinking_cup",
+            "source_record_id": "sem-v1-dev-011"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "drink_beverages",
+            "source_record_id": "sem-v1-dev-011"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "category",
+            "prediction": "decorative_vessel",
+            "source_record_id": "sem-v1-dev-020"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "display_decoration",
+            "source_record_id": "sem-v1-dev-020"
+          }
+        ],
+        "run_id": "df865d3b659f4a98b7e12855a2c2041f",
+        "scoring_version": "semantic-v1-scoring-1",
+        "split": "development",
+        "token_usage": {
+          "input_tokens": 9538,
+          "output_tokens": 2541,
+          "total_tokens": 12079
+        }
+      },
+      "baseline_validation": {
+        "atlas_persistence_verified": true,
+        "average_tokens_per_product": {
+          "input_tokens": 401.6666666666667,
+          "output_tokens": 106.33333333333333,
+          "total_tokens": 508.0
+        },
+        "development_failures": [],
+        "evaluation_identity_sha256": "b4f48a5912946c4ca9c56cf1eff76a54cc662293887c9d5a8890c3f2db97463e",
+        "evaluation_labels_sha256": "13738ebfb90c04a5acf8390a22256d8e86b0d5140ba0a9dd23111d098197f4a3",
+        "field_accuracy": 0.9166666666666666,
+        "fixture_version": "semantic-v1",
+        "inference_products": 12,
+        "kind": "synthetic_semantic_enrichment",
+        "model_calls": 3,
+        "objective": {
+          "correct_field_decisions": "strictly_greater",
+          "duplicate_outputs": 0,
+          "identical_fixture_identities_and_denominators": true,
+          "missing_outputs": 0,
+          "selection_split": "validation",
+          "unexpected_outputs": 0,
+          "unsupported_assertions": "no_increase",
+          "version": "semantic-v1-validation-objective-1"
+        },
+        "objective_version": "semantic-v1-validation-objective-1",
+        "overall": {
+          "correct_field_decisions": 33,
+          "duplicate_outputs": 0,
+          "evidence_issue_count": 3,
+          "incorrect_field_decisions": 3,
+          "missing_outputs": 0,
+          "necessary_abstentions": 13,
+          "total_expected": 12,
+          "total_field_decisions": 36,
+          "unexpected_outputs": 0,
+          "unnecessary_abstentions": 1,
+          "unsupported_assertions": 4
+        },
+        "policy_version": "semantic-policy-v1-baseline",
+        "raw_unchanged": true,
+        "representative_failures": [
+          {
+            "category": "invalid_evidence",
+            "field": "primary_use",
+            "prediction": "hold_drinking_cup",
+            "source_record_id": "sem-v1-val-003"
+          },
+          {
+            "category": "invalid_evidence",
+            "field": "primary_use",
+            "prediction": "store_items",
+            "source_record_id": "sem-v1-val-007"
+          },
+          {
+            "category": "invalid_evidence",
+            "field": "primary_use",
+            "prediction": "store_items",
+            "source_record_id": "sem-v1-val-007"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "category",
+            "prediction": "measuring_cup",
+            "source_record_id": "sem-v1-val-011"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "measure_materials",
+            "source_record_id": "sem-v1-val-011"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "unknown",
+            "source_record_id": "sem-v1-val-012"
+          }
+        ],
+        "run_id": "cb774929e7fd4f4badb369af9c1e9e9f",
+        "scoring_version": "semantic-v1-scoring-1",
+        "split": "validation",
+        "token_usage": {
+          "input_tokens": 4820,
+          "output_tokens": 1276,
+          "total_tokens": 6096
+        }
+      },
+      "candidate_development": {
+        "atlas_persistence_verified": true,
+        "average_tokens_per_product": {
+          "input_tokens": 444.9166666666667,
+          "output_tokens": 112.08333333333333,
+          "total_tokens": 557.0
+        },
+        "development_failures": [
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "unknown",
+            "source_record_id": "sem-v1-dev-008"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "organize_cables",
+            "source_record_id": "sem-v1-dev-018"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "store_items",
+            "source_record_id": "sem-v1-dev-024"
+          },
+          {
+            "category": "missing_required_secondary",
+            "field": "secondary_uses",
+            "prediction": [
+              "display_decoration"
+            ],
+            "source_record_id": "sem-v1-dev-024"
+          }
+        ],
+        "evaluation_identity_sha256": "f8763965c34745bca492aeccbd03449ede341d62a7538d6587637e8bb40495fb",
+        "evaluation_labels_sha256": "849cbd88fafba149d0da673eb176bf747cc4bc99d1ed86079bc1a14be1cf0fb6",
+        "field_accuracy": 0.9444444444444444,
+        "fixture_version": "semantic-v1",
+        "inference_products": 24,
+        "kind": "synthetic_semantic_enrichment",
+        "model_calls": 6,
+        "objective": {
+          "correct_field_decisions": "strictly_greater",
+          "duplicate_outputs": 0,
+          "identical_fixture_identities_and_denominators": true,
+          "missing_outputs": 0,
+          "selection_split": "validation",
+          "unexpected_outputs": 0,
+          "unsupported_assertions": "no_increase",
+          "version": "semantic-v1-validation-objective-1"
+        },
+        "objective_version": "semantic-v1-validation-objective-1",
+        "overall": {
+          "correct_field_decisions": 68,
+          "duplicate_outputs": 0,
+          "evidence_issue_count": 0,
+          "incorrect_field_decisions": 4,
+          "missing_outputs": 0,
+          "necessary_abstentions": 26,
+          "total_expected": 24,
+          "total_field_decisions": 72,
+          "unexpected_outputs": 0,
+          "unnecessary_abstentions": 1,
+          "unsupported_assertions": 3
+        },
+        "policy_version": "semantic-policy-v1-candidate",
+        "raw_unchanged": true,
+        "representative_failures": [
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "unknown",
+            "source_record_id": "sem-v1-dev-008"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "organize_cables",
+            "source_record_id": "sem-v1-dev-018"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "store_items",
+            "source_record_id": "sem-v1-dev-024"
+          },
+          {
+            "category": "missing_required_secondary",
+            "field": "secondary_uses",
+            "prediction": [
+              "display_decoration"
+            ],
+            "source_record_id": "sem-v1-dev-024"
+          }
+        ],
+        "run_id": "88bf2694ca4a48dea3aa75a0e8fddea0",
+        "scoring_version": "semantic-v1-scoring-1",
+        "split": "development",
+        "token_usage": {
+          "input_tokens": 10678,
+          "output_tokens": 2690,
+          "total_tokens": 13368
+        }
+      },
+      "candidate_validation": {
+        "atlas_persistence_verified": true,
+        "average_tokens_per_product": {
+          "input_tokens": 449.1666666666667,
+          "output_tokens": 105.08333333333333,
+          "total_tokens": 554.25
+        },
+        "development_failures": [],
+        "evaluation_identity_sha256": "b4f48a5912946c4ca9c56cf1eff76a54cc662293887c9d5a8890c3f2db97463e",
+        "evaluation_labels_sha256": "13738ebfb90c04a5acf8390a22256d8e86b0d5140ba0a9dd23111d098197f4a3",
+        "field_accuracy": 0.9444444444444444,
+        "fixture_version": "semantic-v1",
+        "inference_products": 12,
+        "kind": "synthetic_semantic_enrichment",
+        "model_calls": 3,
+        "objective": {
+          "correct_field_decisions": "strictly_greater",
+          "duplicate_outputs": 0,
+          "identical_fixture_identities_and_denominators": true,
+          "missing_outputs": 0,
+          "selection_split": "validation",
+          "unexpected_outputs": 0,
+          "unsupported_assertions": "no_increase",
+          "version": "semantic-v1-validation-objective-1"
+        },
+        "objective_version": "semantic-v1-validation-objective-1",
+        "overall": {
+          "correct_field_decisions": 34,
+          "duplicate_outputs": 0,
+          "evidence_issue_count": 0,
+          "incorrect_field_decisions": 2,
+          "missing_outputs": 0,
+          "necessary_abstentions": 15,
+          "total_expected": 12,
+          "total_field_decisions": 36,
+          "unexpected_outputs": 0,
+          "unnecessary_abstentions": 2,
+          "unsupported_assertions": 0
+        },
+        "policy_version": "semantic-policy-v1-candidate",
+        "raw_unchanged": true,
+        "representative_failures": [
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "unknown",
+            "source_record_id": "sem-v1-val-007"
+          },
+          {
+            "category": "incorrect_label",
+            "field": "primary_use",
+            "prediction": "unknown",
+            "source_record_id": "sem-v1-val-012"
+          }
+        ],
+        "run_id": "e5db5a4f835148168201c432f13fa4a5",
+        "scoring_version": "semantic-v1-scoring-1",
+        "split": "validation",
+        "token_usage": {
+          "input_tokens": 5390,
+          "output_tokens": 1261,
+          "total_tokens": 6651
+        }
+      }
+    },
+    "sources": {
+      "development": {
+        "dataset_id": "semantic-v1-development",
+        "normalization_run_id": "4c460fadafa04adaab1a703a7204c56f",
+        "raw_digest": {
+          "count": 24,
+          "sha256": "be492247410a4197396374db58ee62a158d97816327e899717c826fbf585d4cb"
+        },
+        "seed_repeatable": true
+      },
+      "validation": {
+        "dataset_id": "semantic-v1-validation",
+        "normalization_run_id": "486b6260e4634c3d8a71729894a23086",
+        "raw_digest": {
+          "count": 12,
+          "sha256": "d5d6aed830c9036f011fef6f43afb9f71dde325f2493943cc0f5d0bdf858bd28"
+        },
+        "seed_repeatable": true
+      }
+    },
+    "started_at": "2026-10-11T20:51:41.819476+00:00",
+    "status": "completed",
     "usage": {
-      "calls": 0,
-      "tokens": null,
+      "by_stage": {
+        "baseline_development": {
+          "calls": 6,
+          "input_tokens": 9538,
+          "output_tokens": 2541,
+          "total_tokens": 12079
+        },
+        "baseline_validation": {
+          "calls": 3,
+          "input_tokens": 4820,
+          "output_tokens": 1276,
+          "total_tokens": 6096
+        },
+        "candidate_development": {
+          "calls": 6,
+          "input_tokens": 10678,
+          "output_tokens": 2690,
+          "total_tokens": 13368
+        },
+        "candidate_validation": {
+          "calls": 3,
+          "input_tokens": 5390,
+          "output_tokens": 1261,
+          "total_tokens": 6651
+        },
+        "policy_proposal": {
+          "calls": 1,
+          "input_tokens": 1649,
+          "output_tokens": 204,
+          "total_tokens": 1853
+        }
+      },
+      "calls": 19,
+      "max_calls": 20,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "stopped": false,
+      "tokens": {
+        "input_tokens": 32075,
+        "output_tokens": 7972,
+        "total_tokens": 40047
+      },
       "unknown_usage_calls": 0
     }
   },
-  "verification_source": "managed-runtime bounded attempt"
+  "verification_source": "completed managed-runtime experiment with Atlas readback"
 }

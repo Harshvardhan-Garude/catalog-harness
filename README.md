@@ -302,30 +302,97 @@ apply to this small synthetic fixture, not production catalog accuracy.
 
 ### Newly verified semantic milestone status — October 11, 2026
 
-**87 tests pass**, including the original 37 and 50 additional semantic tests.
+**101 tests pass**, including the original 37 and 64 semantic/diagnostic tests.
 Mocked orchestration verifies the nine-call perfect-baseline path, 19-call
 single-revision path, failure stopping, and detection of persisted evidence
 tampering. Mocked outputs are tests, not AI results or improvement evidence.
 
 The pre-live freeze is checked into `fixtures/semantic-v1-freeze.json` with digest
 `5474b4421fcf6f0ba083069329292c50d486b69fe24034d30642172719a22dd2`.
-The single managed-runtime attempt, experiment
+An initial managed-runtime attempt, experiment
 `1ea3a967416d4cc1b447013bf573fbee`, failed Atlas preflight with sanitized status
-`atlas/operation_failed` before model transmission. **Zero model calls were made;
-token usage is not applicable.** No semantic baseline/candidate metrics or actual
-semantic model input/output exist for that attempt. No policy was proposed or
-accepted; no improvement is claimed. Semantic Atlas persistence/raw-integrity
-checks remain unverified externally. The prior v1 Atlas result above is separate.
+`atlas/operation_failed` before model transmission. The user reported the same
+failure from the normal terminal, experiment `d6b87def758b499e9998a17f29b97514`.
+Both made zero model calls. A subsequent **single read-only diagnostic ping passed**,
+using Python 3.8.10 / PyMongo 4.10.1 and the project `.env`, without environment
+overrides. The original generic errors did not retain the underlying cause; no
+specific network/TLS/credential cause is established. No Atlas settings or TLS
+verification were changed. For future diagnosis, use
+`.venv/bin/python -m enrichment.atlas_diagnostics`; it performs one bounded ping,
+prints configuration names/presence and static error categories only, and makes
+no database writes or model requests. Experiment failures now record the active
+stage and a sanitized specific code when available.
 
-To complete verification from the normal terminal with working Atlas access, run
-`.venv/bin/python -m enrichment.experiment run`. No call ledger was created by the
-blocked preflight, so this does not reset or retry a transmitted model request.
-If a subsequent attempt creates `calls.json`, do not delete it or rerun live
-requests automatically; inspect `.venv/bin/python -m enrichment.experiment report`.
-The managed runtime and normal terminal need not have the same network access.
-The remaining demo work is to complete the bounded experiment, inspect its real
-input/output and validation decision, then push the new commit and prepare the
-hackathon submission. Leave final holdout unused during development.
+After that successful ping, the bounded experiment completed:
+`a33a4aedd2ba4ace89cb8a6ec023d178`, model `gpt-4.1-mini-2025-04-14`.
+These are **real AI enrichment results on the frozen synthetic fixture**, separate
+from the hand-authored normalization fixture and user-reported historical v1 run.
+The scores below describe outputs after the configured harness review behavior.
+
+| Metric | Baseline | Candidate |
+| --- | ---: | ---: |
+| Development correct field decisions | 68/72 | 68/72 |
+| Development unsupported assertions | 4 | 3 |
+| Development necessary / unnecessary abstentions | 23 / 0 | 26 / 1 |
+| Validation correct field decisions | 33/36 (91.67%) | 34/36 (94.44%) |
+| Validation unsupported assertions | 4 | 0 |
+| Validation evidence issues | 3 | 0 |
+| Validation necessary / unnecessary abstentions | 13 / 1 | 15 / 2 |
+| Missing / duplicate / unexpected outputs, both splits | 0 / 0 / 0 | 0 / 0 / 0 |
+
+The candidate was **accepted by the frozen validation rule**: one more correct
+field decision, fewer unsupported assertions, and complete unique outputs. This
+is one field decision, not one additional fully correct product. Development
+accuracy did not improve and validation had one extra unnecessary abstention.
+This single synthetic comparison does not establish production generalization;
+the final 24 records remain unused.
+
+The exact candidate is in `docs/semantic-v1-policy.json`. It adds an instruction
+requiring cross-source conflict checks and abstention despite a stronger-looking
+source, and changes `review_behavior` from `report_only` to
+`abstain_invalid_evidence`. Both changes were executed during candidate inference.
+The proposal used only two development cases/predictions and failure codes, before
+validation inference; no expected labels or validation/final examples were sent.
+The combined changes' effects have not been isolated in separate experiments.
+
+An actual input and raw/post-harness output appear in
+`docs/semantic-v1-example.json`. The source description calls the item a drinking
+cup while supplier notes explicitly call it a separate-cup holder. Baseline
+asserted drinking-cup labels; candidate returned unknown for both fields with
+conflict review. The candidate also emitted citations for unasserted category
+labels; the active review behavior removed those citations. Literal citation
+matching alone would not have exposed the baseline's semantic conflict.
+
+| Actual accounting | Calls | Input tokens | Output tokens | Total tokens |
+| --- | ---: | ---: | ---: | ---: |
+| Baseline, 36 listing inferences | 9 | 14,358 | 3,817 | 18,175 |
+| One policy proposal | 1 | 1,649 | 204 | 1,853 |
+| Candidate, 36 listing inferences | 9 | 16,068 | 3,951 | 20,019 |
+| **Whole experiment** | **19/20** | **32,075** | **7,972** | **40,047** |
+
+All calls completed with known usage and one model snapshot. Average inference
+cost was 504.86 tokens/listing for baseline and 556.08 for candidate (about 10.1%
+more), excluding proposal overhead. Resource caps remained identical.
+
+Atlas persisted all 72 enrichment outputs across four runs. Each run re-read its
+outputs/evaluation and verified raw digests; a **separate process** then re-read
+all four runs and the experiment, reproduced all scores, and verified both
+semantic raw datasets and the existing 300-record v1 development digest. Repeated
+semantic seeding retained exactly 24 and 12 source records with identical digests.
+Full metrics, run IDs, preserved blocked attempts, and independent verification
+are in `docs/semantic-v1-results.json`; raw model responses remain in ignored
+artifacts for audit.
+
+The call ledger now exists. **Do not rerun/reset the live experiment.** For a demo,
+inspect the existing report without network or model calls:
+
+```bash
+.venv/bin/python -m enrichment.experiment report
+```
+
+The remaining submission work is to inspect the saved example/validation result,
+push the follow-up commit, and prepare the hackathon explanation/demo. No final
+holdout evaluation or further optimization is part of this milestone.
 
 ## Git and publishing
 

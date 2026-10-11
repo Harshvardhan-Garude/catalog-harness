@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from catalog_harness.openai_http import OpenAIError
+from pymongo.errors import ServerSelectionTimeoutError
 from enrichment.budget import ExperimentBudget
 from enrichment.experiment import execute, run_stage
 from enrichment.provider import BASELINE_POLICY
@@ -198,6 +199,22 @@ class ExperimentTests(unittest.TestCase):
             self.assertEqual(store.failures, ["baseline_development"])
             self.assertNotIn("fake-key-not-saved", output.getvalue())
         client.close.assert_called_once()
+
+    def test_atlas_preflight_identifies_stage_without_model_calls_or_secret_text(self):
+        with tempfile.TemporaryDirectory() as directory:
+            _, _, observed, _, _ = self.harness(directory)
+            (Path(directory) / "artifacts").mkdir()
+            output = io.StringIO()
+            with patch("enrichment.experiment.connect", side_effect=ServerSelectionTimeoutError("secret-uri-marker")), \
+                    redirect_stdout(output):
+                status = execute(Path(directory) / "fixtures", Path(directory) / "artifacts")
+            report = json.loads((Path(directory) / "artifacts/report.json").read_text())
+            self.assertEqual(status, 1)
+            self.assertEqual(report["active_stage"], "connect_and_ping")
+            self.assertEqual(report["error"], {"category": "atlas", "code": "server_selection_timeout"})
+            self.assertEqual(report["usage"]["calls"], 0)
+            self.assertEqual(observed, [])
+            self.assertNotIn("secret-uri-marker", output.getvalue())
 
 
 class RunStageTests(unittest.TestCase):

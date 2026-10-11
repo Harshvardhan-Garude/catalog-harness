@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-11T22:10:00.410700+00:00",
+  "checked_at": "2026-10-11T22:26:01.367583+00:00",
   "cumulative_application_cap_usd": 1.0,
   "events": {
     "billing_count_is_not_event_id_verification": true,
@@ -28,22 +28,25 @@
     "venv_ignored": true
   },
   "model_calls_added": 0,
-  "next_action": "Obtain a working Query API key for the same Raindrop organization, replace it privately, verify the original event IDs, then send only the pending signals.",
+  "next_action": "In Raindrop Settings > Projects, ensure the configured project exists and is active in the Query key organization; inspect Projects with data, not yet created. Then verify existing events before sending pending signals.",
   "output_tokens_added": 0,
   "phase_cap_usd": 0.5,
   "query": {
-    "attempts": 2,
+    "attempts": 3,
     "automatic_retries": 0,
     "configuration_names_present": true,
     "configuration_source": ".env",
     "environment_override_present": false,
     "error": {
-      "category": "authentication",
-      "code": "http_401"
+      "category": "permission",
+      "code": "http_403"
     },
-    "http_status": 401,
+    "http_status": 403,
     "initial_placeholder_detected": true,
+    "last_attempt_gets": 1,
     "obvious_format_error": false,
+    "previous_http_status": 401,
+    "project_visibility_and_permission_verified": false,
     "verified_events": 0
   },
   "signals": {

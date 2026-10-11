@@ -205,11 +205,18 @@ remains unverified. A second check after the placeholder was replaced also
 returned `authentication/http_401`, with the correct `.env` source and no
 environment override or obvious format error. Requests stopped after that
 single check; the six signals have still not been sent.
+The latest user-requested check changed to `permission/http_403`, with zero
+events verified. The [Query API reference](https://www.raindrop.ai/docs/query-api/api-reference/)
+documents 403 for an unknown or archived project. Check that the configured
+`RAINDROP_PROJECT_ID` exists and is active in the Query key's organization;
+in Settings → Projects also inspect “Projects with data, not yet created.”
+Project visibility and read permission remain unresolved. No events were
+retransmitted, no signals were sent, and no model calls were added.
 No new model calls are needed to finish this integration. Regression checks
 cover payload provenance, usage, linked signals, headers, bounds, sanitized
 errors, and delivery recovery.
 
-After replacing the read key privately, run:
+After resolving project access and configuring the read key privately, run:
 
 ```bash
 .venv/bin/python -m enrichment.raindrop_query verify

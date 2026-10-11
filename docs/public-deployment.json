@@ -1,13 +1,67 @@
 {
-  "url": "https://catalog-harness.onrender.com/",
-  "checked_at": "2026-10-11T21:35:27Z",
-  "status": "static_hosting_reachable_saved_data_blocked",
-  "http_status": {"/": 200, "/healthz": 200, "/api/state": 503},
-  "saved_results_available": false,
-  "atlas_from_host_verified": false,
+  "all_four_raw_snapshots_unchanged": true,
+  "atlas_from_host_verified": true,
+  "browser_checks": [
+    "saved_metrics",
+    "36_saved_products",
+    "search",
+    "split_filter",
+    "selection",
+    "baseline_candidate_comparison",
+    "policy_instructions",
+    "both_store_previews",
+    "safe_text_rendering",
+    "desktop_layout",
+    "mobile_layout"
+  ],
   "browser_javascript_errors": 0,
-  "product_interactions_verified": false,
-  "model_calls_added": 0,
+  "checked_at": "2026-10-11T21:49:04Z",
+  "deployed_commit": "75a026f6a91f718cf33f5d4575342d59ab9df165",
+  "final_aggregate_source": "atlas",
   "frozen_evaluations_changed": false,
-  "next_check": "Use cached sanitized startup diagnostic to distinguish missing variables, Atlas access failure, or saved-result verification failure."
+  "frozen_report_equality_verified": true,
+  "http_status": {
+    "/": 200,
+    "/api/state": 200,
+    "/healthz": 200
+  },
+  "initial_attempt": {
+    "atlas_from_host_verified": false,
+    "browser_javascript_errors": 0,
+    "checked_at": "2026-10-11T21:35:27Z",
+    "frozen_evaluations_changed": false,
+    "http_status": {
+      "/": 200,
+      "/api/state": 503,
+      "/healthz": 200
+    },
+    "model_calls_added": 0,
+    "next_check": "Use cached sanitized startup diagnostic to distinguish missing variables, Atlas access failure, or saved-result verification failure.",
+    "product_interactions_verified": false,
+    "saved_results_available": false,
+    "status": "static_hosting_reachable_saved_data_blocked",
+    "url": "https://catalog-harness.onrender.com/"
+  },
+  "model_calls_added": 0,
+  "product_interactions_verified": true,
+  "product_results_source": "atlas",
+  "public_placement_acceptance_verified_in_existing_event_database": true,
+  "public_store_preview_verified": {
+    "gift": {
+      "needs_review": 9,
+      "ready": 26,
+      "selected": 36,
+      "unmapped": 1
+    },
+    "homeware": {
+      "needs_review": 9,
+      "ready": 26,
+      "selected": 36,
+      "unmapped": 1
+    }
+  },
+  "saved_product_count": 36,
+  "saved_results_available": true,
+  "status": "verified_working_demo",
+  "url": "https://catalog-harness.onrender.com/"
 }

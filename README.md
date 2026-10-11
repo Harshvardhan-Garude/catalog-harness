@@ -115,11 +115,16 @@ or Modelence database provisioning is performed.
 then `python -m demo_app`, bound to `0.0.0.0:$PORT`. `.python-version` selects the
 latest Python 3.11 patch on Render; local checks continue in existing Python 3.8.
 See [Render web services](https://render.com/docs/web-services) and
-[Python versions](https://render.com/docs/python-version). The user deployed
-**https://catalog-harness.onrender.com/**. Initial public checks reached the page
-and health endpoint, but saved data is **blocked**: `/healthz` returned
-`saved_results_available: false` and `/api/state` returned HTTP 503. Static hosting
-is verified; public Atlas reads and product interactions are not yet verified.
+[Python versions](https://render.com/docs/python-version). The public demo is live
+at **https://catalog-harness.onrender.com/** and independently verified at commit
+`75a026f`: page, health, and saved-state endpoints return HTTP 200. Both the 36
+product inspector and final aggregate read matching saved reports from Atlas.
+Browser checks pass for saved metrics, search/filter/selection, comparisons,
+policy instructions, both store previews, and desktop/mobile layouts with zero
+JavaScript errors. One supported public placement was accepted, read back from
+the existing event demo database, and all four raw snapshots remained unchanged.
+`docs/public-deployment.json` preserves the initial failed data load and the
+successful subsequent verification. No deployment verification called a model.
 
 In the hosting dashboard, set **CATALOG_MONGODB_URI** (secret) and
 **CATALOG_MONGODB_DATABASE** to the existing event Atlas database. Hosted startup
@@ -134,15 +139,16 @@ those endpoints does not retry Atlas connections or make model requests.
 Credentials are never served as static files. Store writes are limited to demo
 placements, with same-origin checks and no external shop access.
 
-Atlas reachability from Render is **unverified**. If blocked, inspect
+Atlas reachability from Render is **verified**. If it becomes blocked, inspect
 the host's outbound IP addresses and the event's Atlas networking policy with the
 event owner. Do not weaken TLS, change Atlas settings silently, or replace the
 event database. The lightweight server is intended for the hackathon demo; public
 identity/authorization, multi-instance preview storage, and production hardening
 remain limitations.
 
-Remaining order: **first Python-host deployment → Raindrop HTTP telemetry with
-actual interactions and linked evaluation signals → the 50k database benchmark**.
+The first Python-host deployment is verified. Remaining order: **Raindrop HTTP
+telemetry with actual interactions and linked evaluation signals → the 50k
+database benchmark**.
 Any imports of saved runs must be labelled historical and must not rerun inference.
 Atlas Search and further optimization remain outside this milestone.
 
@@ -194,8 +200,8 @@ with `PORT=3000` and explicit event Atlas settings.
 report/results, original outputs, normalized copies, unchanged raw snapshots,
 request/cache hashes, frozen contexts, usage, and the preserved original result.
 Credential scans found no secrets in publishable files; `.env` and `.venv/`
-remain ignored. Public-host networking and live Raindrop ingestion still need
-their separate account/configuration steps.
+remain ignored. Public-host Atlas access and interactions are verified; live
+Raindrop ingestion still needs its separate configuration step.
 
 ## Verification status — October 11, 2026
 

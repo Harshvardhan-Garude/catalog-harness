@@ -7,7 +7,7 @@ import threading
 import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from dotenv import dotenv_values
 from pymongo.errors import PyMongoError
@@ -15,6 +15,7 @@ from pymongo.errors import PyMongoError
 from catalog_harness.storage import ROOT, connect
 from enrichment.atlas_diagnostics import sanitized_error
 from .data import DemoRepository
+from .benchmark_view import catalog_page, saved_report
 
 STATIC = Path(__file__).with_name("static")
 FILES = {"/": ("index.html", "text/html; charset=utf-8"),
@@ -130,7 +131,8 @@ class Handler(BaseHTTPRequestHandler):
         self._send(503, {"error": self.server.repository_error, "diagnostic": self.server.startup_error})
 
     def do_GET(self):
-        path = urlsplit(self.path).path
+        parsed = urlsplit(self.path)
+        path = parsed.path
         if path in FILES:
             name, content_type = FILES[path]
             try:
@@ -154,6 +156,27 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, state)
             except Exception:
                 self._error(503, "Saved demo data or store profiles are unavailable or invalid")
+        elif path in ("/api/benchmark", "/api/benchmark/catalog"):
+            if self.server.repository is None:
+                return self._unavailable()
+            try:
+                parameters = parse_qs(parsed.query, keep_blank_values=True)
+                if path == "/api/benchmark":
+                    if parameters:
+                        return self._error(400, "Benchmark report accepts no query parameters")
+                    result = saved_report(self.server.repository)
+                else:
+                    if (set(parameters) - {"dataset_id", "supplier", "status", "page"}
+                            or any(len(values) != 1 for values in parameters.values())):
+                        return self._error(400, "Invalid benchmark browser parameters")
+                    result = catalog_page(self.server.repository, dataset_id=parameters.get("dataset_id", [""])[0],
+                        supplier=parameters.get("supplier", [""])[0], status=parameters.get("status", [""])[0],
+                        page=parameters.get("page", ["1"])[0])
+                self._send(200, result)
+            except ValueError as error:
+                self._error(400, str(error)[:200])
+            except Exception:
+                self._error(503, "Atlas benchmark read unavailable; saved experiment results remain unchanged")
         else:
             self._error(404, "Not found")
 

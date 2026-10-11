@@ -4,6 +4,7 @@
 // It has no model endpoint. Every source/model string is rendered as text.
 const view = { state: null, products: [], focus: null, selected: new Set(), preview: null,
   previewSelected: new Set(), accepted: new Set(), busy: false };
+const benchmarkView = {page: 1, hasNext: false, busy: false};
 const byId = (id) => document.getElementById(id);
 const number = (value) => typeof value === "number" ? value.toLocaleString() : "—";
 const human = (value) => typeof value === "string" ? value.replaceAll("_", " ") : "Unknown";
@@ -379,6 +380,7 @@ async function refresh() {
     renderOverview(); renderProducts(); renderProfiles(previousProfile); renderPolicies(); clearPreview();
     const focused = view.products.find((product) => product.source_record_id === view.focus);
     if (focused) renderDetail(focused);
+    await loadBenchmark();
     announce(`Loaded ${view.products.length} saved product listings. No model calls.`);
   } catch (error) {
     byId("source-banner").className = "source-banner error";
@@ -422,6 +424,82 @@ async function acceptPreview() {
   finally { view.busy = false; renderPreview(); }
 }
 
+function benchmarkTable(headers, rows) {
+  const wrap = node("div", "benchmark-table-wrap"), table = node("table", "benchmark-table"), head = node("thead"), heading = node("tr"), body = node("tbody");
+  for (const title of headers) heading.append(node("th", "", title));
+  head.append(heading);
+  for (const values of rows) { const row = node("tr"); for (const value of values) row.append(node("td", "", value)); body.append(row); }
+  append(table, head, body); wrap.append(table); return wrap;
+}
+
+function decimal(value, digits=2) { return typeof value === "number" ? value.toLocaleString(undefined, {maximumFractionDigits:digits}) : "—"; }
+
+async function loadBenchmark() {
+  const target = byId("benchmark-report");
+  try {
+    const saved = await api("/api/benchmark"), report = saved.report;
+    target.replaceChildren();
+    append(target, node("p", "benchmark-source" + (saved.source.kind === "atlas" ? "" : " fallback"), saved.source.label));
+    byId("benchmark-browser").hidden = !saved.browser_available;
+    if (!report || !report.datasets || !report.datasets.length) {
+      target.append(node("p", "muted", "No measured benchmark results are available yet. This page never runs the benchmark.")); return;
+    }
+    const datasets = report.datasets, largest = datasets.reduce((left,right) => left.requested_records > right.requested_records ? left : right);
+    const completed = datasets.filter((row)=>row.status === "completed").length;
+    const planned = Array.isArray(report.sizes) ? report.sizes.length : 3;
+    target.querySelector(".benchmark-source").textContent = `${saved.source.label} · ${human(report.status)} · ${completed} / ${planned} datasets completed`;
+    const highlights = node("div", "benchmark-highlights");
+    for (const [value,label] of [[number(largest.raw_count),"actual raw records · largest dataset"],
+      [decimal((largest.processing || {}).records_per_second,1),"records / second · deterministic processing"],
+      [report.model_calls_added === 0 ? "0" : number(report.model_calls_added),"model calls added by benchmark"]]) {
+      const item = node("div", "benchmark-highlight"); append(item,node("strong","",value),node("span","",label)); highlights.append(item);
+    }
+    target.append(highlights);
+    target.append(benchmarkTable(["Separate dataset","Raw / outputs","Initial seed (s)","Repeat seed (s)","Process (s)","Records / sec"],datasets.map((row) => [number(row.requested_records),
+      `${number(row.raw_count)} / ${number(row.output_count)}`,decimal((row.seed_initial || {}).seconds),decimal((row.seed_repeat || {}).seconds),decimal((row.processing || {}).seconds),decimal((row.processing || {}).records_per_second,1)])));
+    const query = largest.query || {};
+    target.append(node("p","benchmark-caption","Same filtered page query · compound index vs forced collection scan"));
+    target.append(benchmarkTable(["Query plan","Median (ms)","p95 (ms)","Samples","Returned","Docs examined","Keys examined"],["indexed","collection_scan"].map((plan) => {
+      const result = query[plan] || {}, stats = result.execution_stats || {};
+      return [plan === "indexed" ? "Compound index" : "Forced collection scan",decimal(result.median_ms),decimal(result.p95_ms),number(result.samples),number(stats.n_returned),number(stats.docs_examined),number(stats.keys_examined)];
+    })));
+    target.append(node("p","benchmark-note",`${number(report.warmup_requests)} warm-up requests per plan; ${number(report.measured_requests)} measured requests. Client-observed timings include network time. executionStats were collected separately. No wall-clock speedup is assumed.`));
+    target.append(node("p","benchmark-caption","MongoDB aggregation · largest dataset by supplier and processing status"));
+    target.append(benchmarkTable(["Supplier","Status","Records"],(largest.aggregation || []).map((row) => [row.supplier_id,row.status,number(row.records)])));
+    const integrity = datasets.every((row) => row.integrity && row.integrity.raw_unchanged && row.integrity.outputs_reconcile && row.integrity.repeat_seed_no_duplicates);
+    target.append(node("p","benchmark-note",integrity ? "Integrity verified across all recorded datasets: raw records unchanged, outputs reconcile, repeat seeding adds no duplicates." : "Integrity checks are incomplete; inspect the saved report before making performance claims."));
+    target.append(jsonDetails("Measurement definitions, limits & saved report",report));
+    const select = byId("benchmark-dataset"), previous = select.value;
+    select.replaceChildren();
+    for (const dataset of datasets) { const option = node("option","",`${number(dataset.requested_records)} records`); option.value=dataset.dataset_id; select.append(option); }
+    select.value = datasets.some((row)=>row.dataset_id === previous) ? previous : largest.dataset_id;
+  } catch (error) {
+    target.replaceChildren(node("p","benchmark-note",`Saved benchmark measurements unavailable: ${error.userMessage || human(error.message)}. Existing enrichment and placement remain available.`));
+    byId("benchmark-browser").hidden = true;
+  }
+}
+
+async function loadBenchmarkPage(page=1) {
+  if (benchmarkView.busy) return;
+  benchmarkView.busy = true;
+  byId("benchmark-load").disabled=true; byId("benchmark-prev").disabled=true; byId("benchmark-next").disabled=true;
+  byId("benchmark-page").textContent="Reading one bounded Atlas page…";
+  try {
+    const params = new URLSearchParams({dataset_id:byId("benchmark-dataset").value,supplier:byId("benchmark-supplier").value,status:byId("benchmark-status").value,page:String(page)});
+    const result = await api("/api/benchmark/catalog?"+params.toString());
+    benchmarkView.page=result.page; benchmarkView.hasNext=result.has_next;
+    byId("benchmark-page").replaceChildren(benchmarkTable(["Source ID","Supplier","Status","Product","Weight (g)"],result.records.map((row)=>[
+      row.source_record_id,row.supplier_id,row.status,(row.product || {}).name || "Needs review",decimal((row.product || {}).weight_g)])));
+    byId("benchmark-page-count").textContent=`Page ${result.page} · ${result.records.length} / ${number(result.total_records)} matching records`;
+  } catch(error) {
+    byId("benchmark-page").textContent=error.userMessage || `Atlas page unavailable: ${human(error.message)}.`;
+    benchmarkView.hasNext=false;
+  } finally {
+    benchmarkView.busy=false; byId("benchmark-load").disabled=false;
+    byId("benchmark-prev").disabled=benchmarkView.page<=1; byId("benchmark-next").disabled=!benchmarkView.hasNext;
+  }
+}
+
 byId("refresh").addEventListener("click", refresh);
 byId("search").addEventListener("input", renderProducts);
 byId("split-filter").addEventListener("change", renderProducts);
@@ -433,6 +511,13 @@ byId("select-visible").addEventListener("click", () => {
 });
 byId("store-profile").addEventListener("change", () => { renderProfile(); clearPreview(); });
 byId("preview-button").addEventListener("click", previewPlacements);
+byId("benchmark-load").addEventListener("click",()=>loadBenchmarkPage(1));
+byId("benchmark-prev").addEventListener("click",()=>loadBenchmarkPage(benchmarkView.page-1));
+byId("benchmark-next").addEventListener("click",()=>loadBenchmarkPage(benchmarkView.page+1));
+for (const id of ["benchmark-dataset","benchmark-supplier","benchmark-status"]) byId(id).addEventListener("change",()=>{
+  benchmarkView.page=1; benchmarkView.hasNext=false; byId("benchmark-prev").disabled=true; byId("benchmark-next").disabled=true;
+  byId("benchmark-page").textContent="Filters changed. Load a page to read Atlas."; byId("benchmark-page-count").textContent="No records loaded";
+});
 for (const link of document.querySelectorAll(".nav-item")) link.addEventListener("click", () => {
   for (const other of document.querySelectorAll(".nav-item")) other.classList.toggle("active", other === link);
 });

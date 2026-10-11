@@ -18,6 +18,7 @@
       <a class="nav-item" href="#inspector"><span aria-hidden="true">⌕</span> Product evidence</a>
       <a class="nav-item" href="#placement"><span aria-hidden="true">↳</span> Store placement</a>
       <a class="nav-item" href="#policy"><span aria-hidden="true">≡</span> Harness policy</a>
+      <a class="nav-item" href="#benchmark"><span aria-hidden="true">▥</span> Database benchmark</a>
     </nav>
     <div class="rail-foot"><span class="small-dot"></span> SAVED RESULTS<br><span>Frozen results. Clear provenance.</span></div>
   </aside>
@@ -66,6 +67,12 @@
       <div class="section-heading"><div><span class="eyebrow">03 / THE HARNESS REVISION</span><h2>What actually changed.</h2></div><span id="policy-decision" class="count-pill">One candidate · validation gate</span></div>
       <div id="policy-comparison" class="policy-comparison"></div>
       <p class="method-note">Same enrichment model, taxonomy, inputs, and scoring. Exact source excerpts establish citation provenance; semantic correctness is scored independently. The candidate’s validation tradeoffs stay visible.</p>
+    </section>
+    <section id="benchmark" class="section benchmark-section">
+      <div class="section-heading"><div><span class="eyebrow">04 / ATLAS DATABASE PERFORMANCE</span><h2>50k synthetic database benchmark</h2></div><span class="count-pill">0 new model calls</span></div>
+      <p class="section-description">Measured database operations and deterministic normalization on separate 1,000, 10,000, and 50,000-record synthetic datasets. The largest dataset is 50k; this is not 50k AI enrichment or production traffic.</p>
+      <div id="benchmark-report" class="benchmark-report"><p class="muted">Loading saved measurements…</p></div>
+      <details id="benchmark-browser" class="profile-details" hidden><summary>Browse live Atlas benchmark records · 25 per page</summary><div class="benchmark-filters"><label>Dataset<select id="benchmark-dataset"></select></label><label>Supplier<select id="benchmark-supplier"><option value="">All suppliers</option><option value="northstar">Northstar</option><option value="cedar">Cedar</option><option value="harbor">Harbor</option></select></label><label>Status<select id="benchmark-status"><option value="">All statuses</option><option value="normalized">Normalized</option><option value="quarantined">Quarantined</option></select></label><button id="benchmark-load" class="button outline" type="button">Load page</button></div><div id="benchmark-page" role="status"></div><div class="benchmark-pagination"><button id="benchmark-prev" class="button quiet" type="button" disabled>← Previous</button><span id="benchmark-page-count" class="muted">No records loaded</span><button id="benchmark-next" class="button quiet" type="button" disabled>Next →</button></div></details>
     </section>
     <footer><span class="footer-brand">CATALOG HARNESS</span><span>Source → normalize → enrich with evidence → review → place</span><span>No live model requests from this demo.</span></footer>
   </main>

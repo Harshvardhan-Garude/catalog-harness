@@ -128,6 +128,30 @@ class SpendingTests(unittest.TestCase):
         self.assertEqual(inventory['calls'], 21)
         self.assertEqual(inventory['upper_bound_nanodollars'], 21 * cost(DETAILS['usage']))
 
+    def test_changed_returned_model_stops_phase_without_retry(self):
+        details = copy.deepcopy(DETAILS)
+        details['model'] = 'gpt-4.1-mini-2099-01-01'
+        transport = Mock(return_value=({}, details))
+        budget = self.budget(transport)
+        with self.assertRaises(OpenAIError) as caught:
+            budget.request('baseline_final_01', **REQUEST)
+        self.assertEqual(caught.exception.code, 'model_changed')
+        self.assertTrue(budget.summary()['stopped'])
+        with self.assertRaises(OpenAIError):
+            budget.request('baseline_final_02', **REQUEST)
+        self.assertEqual(transport.call_count, 1)
+        budget.close()
+
+    def test_unknown_historical_usage_is_reserved_conservatively(self):
+        from enrichment.spending import UNKNOWN_RESERVATION
+        path = self.root / 'artifacts/enrichment-v1/calls.json'
+        ledger = json.loads(path.read_text())
+        ledger['calls'][0]['usage'] = None
+        path.write_text(json.dumps(ledger))
+        inventory = prior_inventory(self.root)
+        self.assertEqual(inventory['upper_bound_nanodollars'],
+                         18 * cost(DETAILS['usage']) + UNKNOWN_RESERVATION)
+
 
 if __name__ == '__main__':
     unittest.main()

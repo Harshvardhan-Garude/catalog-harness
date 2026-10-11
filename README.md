@@ -139,6 +139,57 @@ actual interactions and linked evaluation signals → the 50k database benchmark
 Any imports of saved runs must be labelled historical and must not rerun inference.
 Atlas Search and further optimization remain outside this milestone.
 
+## Raindrop HTTP integration — prepared, ingestion pending
+
+The small standard-library client follows the
+[Raindrop HTTP API](https://www.raindrop.ai/docs/sdk/http-api/): array POSTs to
+`/v1/events/track`, followed by linked `/v1/signals/track`, requiring HTTP 204.
+It uses server-side `RAINDROP_WRITE_KEY` and explicit `RAINDROP_PROJECT_ID` from
+the ignored `.env` or hosting environment. Both names are currently missing; no
+live Raindrop ingestion has been claimed or attempted.
+
+The local outbox has been verified: **31 actual saved model interactions and six
+linked aggregate evaluation signals**, covering the original 19 calls and final
+12 calls. Every import is marked **historical**, with phase/run/stage identities,
+actual returned model and usage, original instructions/input, and original model
+output. Signals are explicitly scoped to a variant aggregate rather than falsely
+attributed to one product. Evaluator answer keys and individual final failures
+are excluded. Exporting and uploading add **zero model calls** and do not affect
+the API spending caps. The demo interface never uploads telemetry automatically.
+
+After the first deployment, enter the two Raindrop variables privately and use:
+
+```bash
+.venv/bin/python -m enrichment.raindrop export --historical
+.venv/bin/python -m enrichment.raindrop send
+.venv/bin/python -m enrichment.raindrop status
+```
+
+Export is immutable and local only; the existing outbox already includes history.
+Sending is explicit, verifies both payload hashes before transmission, sends
+events before their linked signals, uses a 30-second timeout with verified TLS,
+and never retries. Durable reservations block retransmission after uncertain
+completion. Successfully sent groups are skipped on resume. Ten offline tests
+verify payload provenance, usage, linked signals, headers, bounds, sanitized
+errors, and delivery recovery; live service ingestion remains unverified.
+
+## Current verification
+
+The complete **145-test** suite passes in the existing Python 3.8 environment.
+Headless Chrome verifies saved metrics, product search/filter/selection, original
+fields and both policy outputs, exact instructions, profile switching and staged
+preview, safe text rendering, and desktop/mobile layouts. A live Atlas check
+accepted one ready placement per store, verified readback, and confirmed every
+raw snapshot stayed unchanged. Hosted startup passed locally at `0.0.0.0:3000`
+with `PORT=3000` and explicit event Atlas settings.
+
+`docs/demo-verification.json` records 33 independent checks of the final Atlas
+report/results, original outputs, normalized copies, unchanged raw snapshots,
+request/cache hashes, frozen contexts, usage, and the preserved original result.
+Credential scans found no secrets in publishable files; `.env` and `.venv/`
+remain ignored. Public-host networking and live Raindrop ingestion still need
+their separate account/configuration steps.
+
 ## Verification status — October 11, 2026
 
 - The original **37 local regression tests** passed before this milestone.
@@ -160,10 +211,10 @@ Atlas Search and further optimization remain outside this milestone.
   this milestone does not rerun that historical baseline.
 - The final holdout was subsequently evaluated once under the locked policies;
   results are above. It was never used for policy selection or tuning.
-- Foundation `730331f` and milestone `82021e6` are preserved. The user supplied
-  successful terminal push output for both commits to
+- Foundation `730331f`, milestone `82021e6`, and frozen experiment `c3ee55a` are
+  preserved in the published history at
   [Harshvardhan-Garude/catalog-harness](https://github.com/Harshvardhan-Garude/catalog-harness).
-  New local commits require a subsequent push.
+  The demo milestone `ee7b655` was pushed and independently confirmed at origin.
 
 The managed runtime and your normal terminal can have different network access.
 For comparison, run from `/home/harsh/Desktop/MongoDB_Hackathon` with
@@ -304,8 +355,9 @@ Re-evaluate a stored development run with
 The deterministic tools, synthetic generation, database operations, policy/plan
 interfaces, independent evaluator, local event recording, and OpenAI adapter are implemented.
 The hand-authored normalization fixture demonstrates plumbing. The user-reported
-AI baseline is a distinct run. There is no provider SDK, Raindrop integration,
-UI, vector search, deployment, or new agent framework. Codex editor access does not establish
+AI baseline is a distinct run. That original v1 milestone had no telemetry or UI;
+the later saved-results demo and Raindrop client are documented above. There is
+no provider SDK, vector search, or new agent framework. Codex editor access does not establish
 application model access. This synthetic schema covers weights and product names;
 it does not yet model arbitrary supplier formats or multilingual numeric locales.
 Generation and evaluation keep labels/identities in memory; transformation and

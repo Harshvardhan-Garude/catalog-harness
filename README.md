@@ -31,7 +31,8 @@ fallback** using the complete ignored `artifacts/enrichment-v1` files. Placement
 acceptance is disabled in fallback mode. A fresh clone without Atlas access and
 those artifacts displays a useful error; it never manufactures example AI results.
 Restart to retry Atlas access. Final products and answer keys are excluded from
-the inspector; final results are aggregate only.
+the inspector; final results are aggregate only. The final summary prefers its
+matching Atlas report and explicitly labels a local saved-report fallback.
 
 Edit `demo_app/profiles/homeware.json` and `gift.json` to change allowed display
 paths and explicit category/use mapping rules. Preview a selection or all saved
@@ -175,7 +176,7 @@ errors, and delivery recovery; live service ingestion remains unverified.
 
 ## Current verification
 
-The complete **145-test** suite passes in the existing Python 3.8 environment.
+The complete **147-test** suite passes in the existing Python 3.8 environment.
 Headless Chrome verifies saved metrics, product search/filter/selection, original
 fields and both policy outputs, exact instructions, profile switching and staged
 preview, safe text rendering, and desktop/mobile layouts. A live Atlas check

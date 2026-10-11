@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from catalog_harness.storage import ROOT, fingerprint, stable_json
-from demo_app.data import DemoRepository, EXPERIMENT_ID, PLACEMENTS_COLLECTION, _raw_digest
+from demo_app.data import DemoRepository, EXPERIMENT_ID, PLACEMENTS_COLLECTION, _raw_digest, _final_aggregate
 from tests.test_enrichment_provider import OUTPUT, PRODUCT
 
 
@@ -116,6 +116,31 @@ def saved_data(root):
 
 
 class DemoDataTests(unittest.TestCase):
+    def test_final_aggregate_labels_local_source_and_omits_private_details(self):
+        with tempfile.TemporaryDirectory() as directory:
+            docs = Path(directory) / 'docs'
+            docs.mkdir()
+            final = {'phase_id': 'final-phase', 'status': 'completed', 'runs': {
+                'baseline': {'split': 'final', 'overall': {'correct_field_decisions': 68},
+                             'products': [{'private': 'excluded'}], 'representative_failures': ['excluded']}},
+                     'answer_keys': ['excluded'], 'predictions': ['excluded']}
+            (docs / 'semantic-v1-final-results.json').write_text(json.dumps(final))
+            result = _final_aggregate(directory)
+            self.assertEqual(result['source']['kind'], 'local_saved_report')
+            self.assertNotIn('excluded', json.dumps(result))
+
+    def test_final_aggregate_prefers_matching_atlas_report_and_labels_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            docs = Path(directory) / 'docs'
+            docs.mkdir()
+            final = {'phase_id': 'final-phase', 'status': 'completed', 'runs': {}}
+            (docs / 'semantic-v1-final-results.json').write_text(json.dumps(final))
+            store = MagicMock()
+            store.experiments = Collection([{'_id': 'final-phase', 'report': final}])
+            self.assertEqual(_final_aggregate(directory, store)['source']['kind'], 'atlas')
+            store.experiments.rows[0]['report']['status'] = 'different'
+            self.assertEqual(_final_aggregate(directory, store)['source']['kind'], 'local_saved_report')
+
     def test_local_snapshot_is_explicit_immutable_and_does_not_connect(self):
         with tempfile.TemporaryDirectory() as directory:
             saved_data(directory)

@@ -96,6 +96,7 @@ function renderFinal(finalReport) {
   if (!finalReport) return;
   const report = finalReport.evaluation || finalReport, counts = report.overall || {};
   append(box, node("h3", "", "Final holdout · aggregate results only"));
+  if (finalReport.source) append(box, node("p", "", finalReport.source.label));
   if (typeof counts.correct_field_decisions === "number") {
     append(box, node("p", "", `${number(counts.correct_field_decisions)} / ${number(counts.total_field_decisions)} correct field decisions · ${number(counts.unsupported_assertions)} unsupported assertions · ${number(counts.unnecessary_abstentions)} unnecessary abstentions`));
   }

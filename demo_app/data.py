@@ -121,7 +121,7 @@ def _policy_signature(report):
                         "runs": {stage: row["run_id"] for stage, row in report["runs"].items()}})
 
 
-def _final_aggregate(root):
+def _final_aggregate(root, store=None):
     paths = (Path(root) / "docs/semantic-v1-final-results.json", Path(root) / "artifacts/enrichment-v1-final/report.json")
     for path in paths:
         if not path.exists():
@@ -129,9 +129,19 @@ def _final_aggregate(root):
         try:
             outer = _json(path)
             report = outer.get("report", outer)
+            source = {"kind": "local_saved_report", "label": "Local saved final report"}
+            if store is not None and isinstance(report.get("phase_id"), str):
+                try:
+                    saved = store.experiments.find_one({"_id": report["phase_id"]}, {"report": 1})
+                    if saved and saved.get("report") == report:
+                        report = saved["report"]
+                        source = {"kind": "atlas", "label": "Atlas saved final report"}
+                except Exception:
+                    pass
             result = {key: copy.deepcopy(report[key]) for key in
                       ("status", "experiment_id", "fixture_version", "final_holdout_evaluated", "raw_unchanged", "atlas_persistence_verified") if key in report}
             result["label"] = "Synthetic final holdout results; aggregate evaluation only"
+            result["source"] = source
             result["runs"] = {}
             for stage, run in report.get("runs", {}).items():
                 result["runs"][stage] = {key: copy.deepcopy(run[key]) for key in
@@ -179,6 +189,7 @@ class DemoRepository:
                 "Showing saved local experiment files. Atlas placement acceptance is disabled."}
         self.report, self.products = report, products
         self._signature = _policy_signature(report)
+        self.final_evaluation = _final_aggregate(self.root, self.store)
 
     def _atlas(self):
         document = self.store.experiments.find_one({"_id": EXPERIMENT_ID}, {"report": 1})
@@ -272,7 +283,7 @@ class DemoRepository:
         return copy.deepcopy({"source": self.source, "experiment": self.report, "products": self.products,
                               "policies": self.report["policies"], "profiles": profiles,
                               "policy_instructions": {variant: instructions(policy) for variant, policy in self.report["policies"].items()},
-                              "final_evaluation": _final_aggregate(self.root)})
+                              "final_evaluation": self.final_evaluation})
 
     def _selected(self, source_record_ids, available):
         if source_record_ids is None:

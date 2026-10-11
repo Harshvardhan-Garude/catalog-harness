@@ -14,6 +14,7 @@ import os
 import re
 import socket
 import ssl
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -215,7 +216,8 @@ def export_outbox(root=ROOT, outbox=None, include_historical=False):
 
 def _configuration_values(values):
     values = {name: (values.get(name) or "").strip() for name in ("RAINDROP_WRITE_KEY", "RAINDROP_PROJECT_ID")}
-    missing = [name for name, value in values.items() if not value or value.startswith("YOUR_")]
+    missing = [name for name, value in values.items()
+               if not value or value.startswith("YOUR_") or value == name]
     if missing:
         return None, missing
     project = values["RAINDROP_PROJECT_ID"]
@@ -232,7 +234,11 @@ def configuration(root=ROOT):
 
 
 def post_array(endpoint, payload, config):
-    """One POST, 30 seconds, verified TLS, no redirects, no retries."""
+    """One POST, 30 seconds, verified TLS, no redirects, no retries.
+
+    The HTTP guide shows 204; the official raindrop-ai SDK accepts all 2xx
+    responses with raise_for_status(). An acknowledgement is not readback.
+    """
     if endpoint not in ("events", "signals") or not isinstance(payload, list):
         raise RaindropError("configuration", "invalid_payload")
     config, missing = _configuration_values(config)
@@ -243,8 +249,11 @@ def post_array(endpoint, payload, config):
         "X-Raindrop-Project-Id": config["RAINDROP_PROJECT_ID"], "Content-Type": "application/json"})
     try:
         with build_opener(NoRedirect()).open(request, timeout=30) as response:
-            if response.status != 204:
-                raise RaindropError("response", "unexpected_status")
+            status = response.status
+            if type(status) is not int or not 200 <= status < 300:
+                code = "http_{}".format(status) if type(status) is int else "invalid_status"
+                raise RaindropError("response", code)
+            return {"http_status": status}
     except HTTPError as error:
         code = error.code
         error.close()
@@ -298,7 +307,7 @@ def send_outbox(outbox=OUTBOX, config=None, transport=None):
             state[endpoint]["status"] = "reserved"
             write_json(outbox / "delivery.json", state)
             try:
-                transport(endpoint, payload, config)
+                acknowledgement = transport(endpoint, payload, config)
             except RaindropError as error:
                 state[endpoint].update(status="unknown" if error.category in ("network", "response") else "failed",
                                        error={"category": error.category, "code": error.code})
@@ -309,6 +318,10 @@ def send_outbox(outbox=OUTBOX, config=None, transport=None):
                 write_json(outbox / "delivery.json", state)
                 raise RaindropError("local", "delivery_failed") from None
             state[endpoint]["status"] = "sent"
+            state[endpoint]["acknowledged_at"] = datetime.now(timezone.utc).isoformat()
+            if (isinstance(acknowledgement, dict) and type(acknowledgement.get("http_status")) is int
+                    and 200 <= acknowledgement["http_status"] < 300):
+                state[endpoint]["http_status"] = acknowledgement["http_status"]
             write_json(outbox / "delivery.json", state)
     return {"status": "sent", "events": manifest["events"], "signals": manifest["signals"], "model_calls_added": 0}
 
@@ -328,7 +341,9 @@ def main(argv=None):
                 print("Missing: " + ", ".join(result["missing"]))
                 return 1
         else:
-            result = _read(args.outbox / "delivery.json")
+            state = _read(args.outbox / "delivery.json")
+            result = {"version": state.get("version"), "project_configured": bool(state.get("project_id")),
+                      "events": state.get("events"), "signals": state.get("signals")}
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
     except RaindropError as error:

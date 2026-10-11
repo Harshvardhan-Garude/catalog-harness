@@ -152,14 +152,22 @@ database benchmark**.
 Any imports of saved runs must be labelled historical and must not rerun inference.
 Atlas Search and further optimization remain outside this milestone.
 
-## Raindrop HTTP integration — prepared, ingestion pending
+## Raindrop HTTP integration — receipt verification pending
 
 The small standard-library client follows the
 [Raindrop HTTP API](https://www.raindrop.ai/docs/sdk/http-api/): array POSTs to
-`/v1/events/track`, followed by linked `/v1/signals/track`, requiring HTTP 204.
+`/v1/events/track`, followed by linked `/v1/signals/track`. The HTTP guide shows
+204; successful 2xx acknowledgements are accepted, matching the
+[official Python SDK](https://pypi.org/project/raindrop-ai/). An acknowledgement
+does not establish readback of the stored content.
 It uses server-side `RAINDROP_WRITE_KEY` and explicit `RAINDROP_PROJECT_ID` from
-the ignored `.env` or hosting environment. Both names are currently missing; no
-live Raindrop ingestion has been claimed or attempted.
+the ignored `.env` or hosting environment. Both are configured locally. One
+31-event upload was attempted; the previous 204-only checker classified its
+response as `response/unexpected_status` without saving the numeric status.
+The user reports billing at 31/1000, supporting receipt of a count but not the
+exact event IDs or project. Those events remain **unknown** locally and must
+not be uploaded again. The six linked signals remain **pending** and have not
+been attempted. See `docs/raindrop-verification.json` for recorded evidence.
 
 The local outbox has been verified: **31 actual saved model interactions and six
 linked aggregate evaluation signals**, covering the original 19 calls and final
@@ -170,7 +178,7 @@ attributed to one product. Evaluator answer keys and individual final failures
 are excluded. Exporting and uploading add **zero model calls** and do not affect
 the API spending caps. The demo interface never uploads telemetry automatically.
 
-After the first deployment, enter the two Raindrop variables privately and use:
+For a new outbox, enter the two ingestion variables privately and use:
 
 ```bash
 .venv/bin/python -m enrichment.raindrop export --historical
@@ -182,13 +190,56 @@ Export is immutable and local only; the existing outbox already includes history
 Sending is explicit, verifies both payload hashes before transmission, sends
 events before their linked signals, uses a 30-second timeout with verified TLS,
 and never retries. Durable reservations block retransmission after uncertain
-completion. Successfully sent groups are skipped on resume. Ten offline tests
-verify payload provenance, usage, linked signals, headers, bounds, sanitized
-errors, and delivery recovery; live service ingestion remains unverified.
+completion. Successfully sent groups are skipped on resume. Do not reset the
+existing delivery ledger to bypass an uncertain attempt.
+
+For the current uncertain upload, configure the separate
+`RAINDROP_QUERY_API_KEY` privately, obtained from
+[Raindrop Query API authentication](https://auth.raindrop.ai/). The
+[Query API](https://www.raindrop.ai/docs/query-api/sdk/) uses a different key
+from ingestion and the same explicit project header. The first read-only check
+was rejected with `authentication/http_401`; local validation subsequently
+identified a placeholder in the read-key variable. Placeholder values are now
+reported as missing variable names before making a request. Exact receipt
+remains unverified. A second check after the placeholder was replaced also
+returned `authentication/http_401`, with the correct `.env` source and no
+environment override or obvious format error. Requests stopped after that
+single check; the six signals have still not been sent.
+No new model calls are needed to finish this integration. Regression checks
+cover payload provenance, usage, linked signals, headers, bounds, sanitized
+errors, and delivery recovery.
+
+After replacing the read key privately, run:
+
+```bash
+.venv/bin/python -m enrichment.raindrop_query verify
+# Continue only when verification reports all 31 events verified:
+.venv/bin/python -m enrichment.raindrop send
+.venv/bin/python -m enrichment.raindrop status
+```
+
+Verification performs GETs only, compares each saved event's exact identity,
+input/output, model, usage and provenance, and persists progress in the ignored
+outbox. It reconciles the original attempt only after all events match, retains
+its original error, and leaves signals pending. The subsequent send skips those
+events and attempts only the six signals. HTTP acceptance of signals must not
+be described as readback of their aggregate properties.
+
+The [Raindrop setup skill](https://raw.githubusercontent.com/raindrop-ai/skills/main/raindrop-setup/SKILL.md)
+was applied to the existing, authorized HTTP import. No extra SDK dependency,
+runtime change or new model interaction is needed. Synthetic fixtures are the
+only exported inputs; the HTTP client does not provide SDK PII redaction or
+automatic buffering/retries. There are no end-user accounts, live chat threads,
+feedback controls or tool calls to instrument in this saved-results interface.
+After ingestion is verified, optional investigation tools are the
+[Raindrop MCP server](https://mcp.raindrop.ai/mcp),
+`npx skills add raindrop-ai/skills --skill raindrop-investigate`, and Raindrop's
+Slack alert connection. These are not prerequisites for the demo or permission
+to rerun the completed evaluations.
 
 ## Current verification
 
-The complete **150-test** suite passes in the existing Python 3.8 environment.
+The complete **163-test** suite passes in the existing Python 3.8 environment.
 Headless Chrome verifies saved metrics, product search/filter/selection, original
 fields and both policy outputs, exact instructions, profile switching and staged
 preview, safe text rendering, and desktop/mobile layouts. A live Atlas check
@@ -200,8 +251,9 @@ with `PORT=3000` and explicit event Atlas settings.
 report/results, original outputs, normalized copies, unchanged raw snapshots,
 request/cache hashes, frozen contexts, usage, and the preserved original result.
 Credential scans found no secrets in publishable files; `.env` and `.venv/`
-remain ignored. Public-host Atlas access and interactions are verified; live
-Raindrop ingestion still needs its separate configuration step.
+remain ignored. Public-host Atlas access and interactions are verified;
+Raindrop's first event upload needs exact receipt reconciliation before its
+six pending evaluation signals can be sent.
 
 ## Verification status — October 11, 2026
 

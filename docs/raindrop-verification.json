@@ -1,0 +1,57 @@
+{
+  "checked_at": "2026-10-11T22:10:00.410700+00:00",
+  "cumulative_application_cap_usd": 1.0,
+  "events": {
+    "billing_count_is_not_event_id_verification": true,
+    "delivery_status": "unknown",
+    "exact_receipt_verified": false,
+    "expected": 31,
+    "last_delivery_error": {
+      "category": "response",
+      "code": "unexpected_status"
+    },
+    "sha256": "e07107c8d197252393b421c1be7d1d7afea7ed76973cc8f3228545b4917b36ad",
+    "user_reported_billing_count": 31
+  },
+  "events_retransmitted": 0,
+  "frozen_experiment_rerun": false,
+  "historical": true,
+  "input_tokens_added": 0,
+  "kind": "historical_raindrop_ingestion_verification",
+  "local_verification": {
+    "env_ignored": true,
+    "history_blobs_scanned": 92,
+    "publishable_files_scanned": 71,
+    "regression_status": "passed",
+    "regression_tests": 163,
+    "secret_findings": 0,
+    "venv_ignored": true
+  },
+  "model_calls_added": 0,
+  "next_action": "Obtain a working Query API key for the same Raindrop organization, replace it privately, verify the original event IDs, then send only the pending signals.",
+  "output_tokens_added": 0,
+  "phase_cap_usd": 0.5,
+  "query": {
+    "attempts": 2,
+    "automatic_retries": 0,
+    "configuration_names_present": true,
+    "configuration_source": ".env",
+    "environment_override_present": false,
+    "error": {
+      "category": "authentication",
+      "code": "http_401"
+    },
+    "http_status": 401,
+    "initial_placeholder_detected": true,
+    "obvious_format_error": false,
+    "verified_events": 0
+  },
+  "signals": {
+    "attempted": 0,
+    "delivery_status": "pending",
+    "exact_receipt_verified": false,
+    "expected": 6,
+    "sha256": "9521e7088a64b18ea0b27f064c7c1f97b7a4248aa63a271f7ceccf134362fde5"
+  },
+  "status": "blocked_receipt_verification"
+}

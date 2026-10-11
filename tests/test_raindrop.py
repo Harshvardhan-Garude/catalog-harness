@@ -146,6 +146,27 @@ class TransportTests(unittest.TestCase):
         self.assertIsInstance(builder.call_args.args[0], raindrop.NoRedirect)
         self.assertIsNone(builder.call_args.args[0].redirect_request(request, None, 302, "private", {}, "https://other.invalid"))
 
+    def test_other_2xx_acknowledgements_match_the_official_sdk_without_reading_body(self):
+        for status in (200, 201, 202, 204, 299):
+            with self.subTest(status=status):
+                opener = MagicMock()
+                response = opener.open.return_value.__enter__.return_value
+                response.status = status
+                with patch.object(raindrop, "build_opener", return_value=opener):
+                    self.assertEqual(raindrop.post_array("signals", [], CONFIG), {"http_status": status})
+                self.assertEqual(opener.open.call_count, 1)
+                response.read.assert_not_called()
+
+    def test_unexpected_status_retains_only_numeric_diagnostic_and_never_retries(self):
+        opener = MagicMock()
+        response = opener.open.return_value.__enter__.return_value
+        response.status = 302
+        with patch.object(raindrop, "build_opener", return_value=opener), self.assertRaises(raindrop.RaindropError) as raised:
+            raindrop.post_array("events", [], CONFIG)
+        self.assertEqual((raised.exception.category, raised.exception.code), ("response", "http_302"))
+        self.assertEqual(opener.open.call_count, 1)
+        response.read.assert_not_called()
+
     def test_failures_are_sanitized_and_never_retry_or_read_error_body(self):
         for error, category, code in ((HTTPError("private-host", 401, "private-key", {}, io.BytesIO(b"private-body")), "authentication", "http_401"),
                                       (URLError("private-network-message"), "network", "connection")):
@@ -183,6 +204,16 @@ class DurableDeliveryTests(unittest.TestCase):
             raindrop.send_outbox(exported["outbox"], CONFIG, transport)
             self.assertEqual(transport.call_count, 2)
             self.assertNotIn("private-write-key", (Path(exported["outbox"]) / "delivery.json").read_text())
+
+    def test_success_persists_acknowledgement_status_and_time(self):
+        with tempfile.TemporaryDirectory() as directory:
+            phases(directory)
+            exported = raindrop.export_outbox(directory)
+            raindrop.send_outbox(exported["outbox"], CONFIG, MagicMock(return_value={"http_status": 200}))
+            state = json.loads((Path(exported["outbox"]) / "delivery.json").read_text())
+            for endpoint in ("events", "signals"):
+                self.assertEqual(state[endpoint]["http_status"], 200)
+                self.assertIn("acknowledged_at", state[endpoint])
 
     def test_unknown_completion_and_crash_reservation_block_all_retransmission(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -28,6 +28,9 @@ def outbox(directory, count=3):
                            "input": "private-looking saved input {}".format(index),
                            "output": '{"products": []}'}}
               for index in range(count)]
+    for event in events:
+        event["ai_data"]["input"] = json.dumps({**event["properties"]["request_configuration"],
+            "instructions": "Saved instructions.", "input_text": event["ai_data"]["input"]}, sort_keys=True)
     signals = [{"event_id": events[0]["event_id"], "signal_name": "synthetic_enrichment_evaluation",
                 "properties": {"counts": {"correct_field_decisions": 70}, "scope": "variant_aggregate"}}]
     manifest = {"version": 1, "kind": "saved_synthetic_raindrop_import", "historical": True,
@@ -67,6 +70,10 @@ class RecoveryTests(unittest.TestCase):
             self.assertEqual(result["status"], "verified")
             self.assertEqual((result["verified_events"], result["network_gets_added"]), (31, 31))
             self.assertTrue(result["events_reconciled"])
+            self.assertTrue(result["core_events_verified"])
+            self.assertTrue(result["nested_metadata_verified"])
+            self.assertFalse(result["local_usage_only"])
+            self.assertEqual(result["missing_nested_metadata"], {})
             self.assertFalse(result["signal_properties_verified"])
             self.assertEqual(result["signals_status"], "pending")
             self.assertNotIn("private", json.dumps(result))
@@ -89,6 +96,96 @@ class RecoveryTests(unittest.TestCase):
             self.assertEqual(resumed["network_gets_added"], 0)
             self.assertFalse(resumed["events_reconciled"])
             transport.assert_not_called()
+
+    def test_missing_only_two_nested_properties_records_coverage_and_proves_config_from_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder, events = outbox(directory, count=31)
+            state = raindrop._read(folder / "delivery.json")
+            state["signals"]["status"] = "superseded"
+            state["signals_wire"] = {"status": "pending"}
+            write_json(folder / "delivery.json", state)
+            # The real legacy receipt had no successful proofs. Migrate it safely.
+            manifest = raindrop._read(folder / "manifest.json")
+            legacy = query._receipt(folder, manifest, events, CONFIG["RAINDROP_PROJECT_ID"])
+            legacy["version"] = 1
+            write_json(folder / query.RECEIPT_NAME, legacy)
+
+            def scalar_read(identity, config):
+                event = next(item for item in events if item["event_id"] == identity)
+                result = response(event)
+                for name in ("model_usage", "request_configuration"):
+                    result["data"]["properties"].pop(name)
+                return result
+
+            result = query.verify_outbox(folder, CONFIG, scalar_read)
+            self.assertEqual(result["status"], "verified")
+            self.assertEqual(result["verified_events"], 31)
+            self.assertTrue(result["core_events_verified"])
+            self.assertFalse(result["nested_metadata_verified"])
+            self.assertTrue(result["local_usage_only"])
+            self.assertEqual(result["missing_nested_metadata"], {"model_usage": 31, "request_configuration": 31})
+            self.assertEqual(result["request_configuration_verified_via_input_events"], 31)
+            self.assertEqual(result["usage_readback_verified_events"], 0)
+            self.assertEqual(result["signals_status"], "pending")
+            receipt = raindrop._read(folder / query.RECEIPT_NAME)
+            self.assertEqual(receipt["version"], 2)
+            self.assertTrue(all(proof["coverage"]["request_configuration_verified_via_input"]
+                                for proof in receipt["verified"].values()))
+            state = raindrop._read(folder / "delivery.json")
+            self.assertEqual(state["events"]["status"], "sent")
+            self.assertFalse(state["events"]["query_verification"]["nested_metadata_verified"])
+            self.assertEqual(state["events"]["error"]["code"], "unexpected_status")
+            self.assertEqual(state["signals"]["status"], "superseded")
+            transport = MagicMock()
+            resumed = query.verify_outbox(folder, CONFIG, transport)
+            self.assertEqual(resumed["missing_nested_metadata"], result["missing_nested_metadata"])
+            self.assertTrue(resumed["local_usage_only"])
+            transport.assert_not_called()
+
+    def test_missing_metadata_is_no_permission_to_ignore_bad_values_or_unproven_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            unused, events = outbox(directory)
+            event = events[0]
+            for missing in ("run_id", "historical", "request_sha256"):
+                observed = response(event)
+                observed["data"]["properties"].pop(missing)
+                self.assertFalse(query._matches(event, observed))
+            extra_nested = copy.deepcopy(event)
+            extra_nested["properties"]["other_nested"] = {"must": "remain verifiable"}
+            observed = response(extra_nested)
+            observed["data"]["properties"].pop("other_nested")
+            self.assertFalse(query._matches(extra_nested, observed))
+            for name in ("model_usage", "request_configuration"):
+                observed = response(event)
+                observed["data"]["properties"][name] = {"provided": "incorrect"}
+                self.assertFalse(query._matches(event, observed))
+            # A fully matching input string cannot establish redundancy if its
+            # decoded request fields disagree with the local configuration.
+            for value in ("not-json", json.dumps({"store": True, "schema": {"type": "object"}}),
+                          json.dumps({"store": False}), "[]"):
+                altered = copy.deepcopy(event)
+                altered["ai_data"]["input"] = value
+                observed = response(altered)
+                observed["data"]["properties"].pop("request_configuration")
+                self.assertFalse(query._matches(altered, observed))
+
+    def test_receipt_coverage_cannot_be_silently_upgraded_or_tampered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder, events = outbox(directory)
+            query.verify_outbox(folder, CONFIG, reader(events))
+            path = folder / query.RECEIPT_NAME
+            original = raindrop._read(path)
+            for mutate in (lambda receipt: receipt.update(version=1),
+                           lambda receipt: receipt["verified"][events[0]["event_id"]].pop("coverage"),
+                           lambda receipt: receipt["verified"][events[0]["event_id"]]["coverage"].update(local_usage_only=True)):
+                altered = copy.deepcopy(original)
+                mutate(altered)
+                write_json(path, altered)
+                transport = MagicMock()
+                with self.assertRaises(raindrop.RaindropError) as raised:
+                    query.verify_outbox(folder, CONFIG, transport)
+                self.assertEqual(raised.exception.code, "query_receipt_changed")
+                transport.assert_not_called()
 
     def test_404_stops_keeps_unknown_and_resumes_only_remaining_gets(self):
         with tempfile.TemporaryDirectory() as directory:

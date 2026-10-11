@@ -1,17 +1,30 @@
 {
-  "checked_at": "2026-10-11T22:26:01.367583+00:00",
+  "checked_at": "2026-10-11T22:42:22.687043+00:00",
   "cumulative_application_cap_usd": 1.0,
   "events": {
     "billing_count_is_not_event_id_verification": true,
-    "delivery_status": "unknown",
-    "exact_receipt_verified": false,
+    "core_fields_verified": true,
+    "delivery_status": "sent",
     "expected": 31,
-    "last_delivery_error": {
+    "missing_nested_metadata": {
+      "model_usage": 31,
+      "request_configuration": 31
+    },
+    "nested_metadata_verified": false,
+    "original_delivery_error_retained": {
       "category": "response",
       "code": "unexpected_status"
     },
+    "original_delivery_status": "unknown",
+    "query_omission_does_not_establish_ingestion_loss": true,
+    "query_receipt_sha256": "0e0380d5c0622217a08456a75101ca8d70a584513e81119cabf5a51519567c04",
+    "request_configuration_verified_via_input_events": 31,
+    "scalar_properties_verified": true,
     "sha256": "e07107c8d197252393b421c1be7d1d7afea7ed76973cc8f3228545b4917b36ad",
-    "user_reported_billing_count": 31
+    "usage_readback_verified_events": 0,
+    "usage_source": "completed_local_model_call_ledgers",
+    "verified": 31,
+    "verified_at": "2026-10-11T22:38:30.832174+00:00"
   },
   "events_retransmitted": 0,
   "frozen_experiment_rerun": false,
@@ -20,41 +33,72 @@
   "kind": "historical_raindrop_ingestion_verification",
   "local_verification": {
     "env_ignored": true,
-    "history_blobs_scanned": 92,
+    "history_blobs_scanned": 101,
     "publishable_files_scanned": 71,
     "regression_status": "passed",
-    "regression_tests": 163,
+    "regression_tests": 171,
     "secret_findings": 0,
     "venv_ignored": true
   },
   "model_calls_added": 0,
-  "next_action": "In Raindrop Settings > Projects, ensure the configured project exists and is active in the Query key organization; inspect Projects with data, not yet created. Then verify existing events before sending pending signals.",
+  "next_action": "Proceed to the planned 50k database benchmark; do not repeat the historical upload or frozen evaluations.",
   "output_tokens_added": 0,
   "phase_cap_usd": 0.5,
   "query": {
-    "attempts": 3,
     "automatic_retries": 0,
     "configuration_names_present": true,
     "configuration_source": ".env",
+    "core_proof_gets": 31,
     "environment_override_present": false,
-    "error": {
-      "category": "permission",
-      "code": "http_403"
-    },
-    "http_status": 403,
-    "initial_placeholder_detected": true,
-    "last_attempt_gets": 1,
-    "obvious_format_error": false,
-    "previous_http_status": 401,
-    "project_visibility_and_permission_verified": false,
-    "verified_events": 0
+    "prior_access_errors": [
+      "authentication/http_401",
+      "authentication/http_401",
+      "permission/http_403"
+    ],
+    "project_data_access_verified": true,
+    "query_receipt_schema": 2,
+    "signal_link_gets": 6
   },
+  "recorded_cumulative_application_cost_estimate_usd": 0.0424452,
   "signals": {
-    "attempted": 0,
-    "delivery_status": "pending",
-    "exact_receipt_verified": false,
+    "acknowledged_at": "2026-10-11T22:38:52.985351+00:00",
+    "aggregate_properties_delivery": "http_204_acknowledged",
+    "aggregate_properties_readback_verified": false,
+    "attempted": 6,
+    "delivery_status": "sent",
     "expected": 6,
-    "sha256": "9521e7088a64b18ea0b27f064c7c1f97b7a4248aa63a271f7ceccf134362fde5"
+    "http_status": 204,
+    "legacy_sender_fenced": true,
+    "link_receipt_sha256": "2f6b482722524fcedb19b45c6a0aae64a7ca2867970876fb4363eec2610b2b97",
+    "link_verification_at": "2026-10-11T22:42:22.687043+00:00",
+    "linked_event_names_verified": 6,
+    "original_payload_preserved": true,
+    "original_payload_sha256": "9521e7088a64b18ea0b27f064c7c1f97b7a4248aa63a271f7ceccf134362fde5",
+    "scope": "variant_aggregate",
+    "wire_format": "flat-metrics-v1",
+    "wire_sha256": "f94413dc9f7d01625f3b5ac6858232a4a925d18eee2517827d4f8330dc05b8bb"
   },
-  "status": "blocked_receipt_verification"
+  "source_model_usage": {
+    "experiment": {
+      "calls": 19,
+      "input_tokens": 32075,
+      "output_tokens": 7972,
+      "total_tokens": 40047
+    },
+    "final_holdout": {
+      "calls": 12,
+      "input_tokens": 20370,
+      "output_tokens": 4805,
+      "total_tokens": 25175
+    },
+    "raindrop_costs_dashboard_verified": false,
+    "source": "completed_local_model_call_ledgers",
+    "total": {
+      "calls": 31,
+      "input_tokens": 52445,
+      "output_tokens": 12777,
+      "total_tokens": 65222
+    }
+  },
+  "status": "historical_event_cores_and_signal_links_verified"
 }

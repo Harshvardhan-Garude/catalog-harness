@@ -264,5 +264,133 @@ class DurableDeliveryTests(unittest.TestCase):
             transport.assert_not_called()
 
 
+class DerivedSignalTests(unittest.TestCase):
+    def ready(self, directory):
+        from enrichment import raindrop_query
+        phases(directory)
+        folder = Path(raindrop.export_outbox(directory)["outbox"])
+        state = raindrop._read(folder / "delivery.json")
+        state["project_id"] = CONFIG["RAINDROP_PROJECT_ID"]
+        state["events"]["status"] = "unknown"
+        write(folder / "delivery.json", state)
+        events = raindrop._read(folder / "events.json")
+        by_id = {event["event_id"]: event for event in events}
+
+        def read_event(identity, config):
+            event = by_id[identity]
+            return {"data": {"id": identity, "event_name": event["event"], "user_id": event["user_id"],
+                             "convo_id": event["ai_data"]["convo_id"], "model": event["ai_data"]["model"],
+                             "user_input": event["ai_data"]["input"], "assistant_output": event["ai_data"]["output"],
+                             "properties": copy.deepcopy(event["properties"])}}
+
+        result = raindrop_query.verify_outbox(folder, {"RAINDROP_QUERY_API_KEY": "private-query-key",
+                                                     "RAINDROP_PROJECT_ID": CONFIG["RAINDROP_PROJECT_ID"]}, read_event)
+        self.assertEqual(result["status"], "verified")
+        return folder
+
+    def test_signals_only_once_flat_metrics_preserve_originals_and_fence_old_sender(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = self.ready(directory)
+            originals = {name: (folder / name).read_bytes() for name in ("events.json", "signals.json", "manifest.json")}
+            transport = MagicMock(return_value={"http_status": 200})
+            result = raindrop.send_signals(folder, CONFIG, transport)
+            self.assertEqual(result["status"], "sent")
+            self.assertEqual(result["events_retransmitted"], 0)
+            self.assertFalse(result["signal_properties_verified"])
+            self.assertEqual([call.args[0] for call in transport.call_args_list], ["signals"])
+            source = raindrop._read(folder / "signals.json")
+            sent = transport.call_args.args[1]
+            self.assertEqual([signal["event_id"] for signal in sent], [signal["event_id"] for signal in source])
+            for original, signal in zip(source, sent):
+                properties = signal["properties"]
+                self.assertTrue(all(type(value) in (str, int, float, bool) or value is None for value in properties.values()))
+                self.assertEqual(json.loads(properties["counts"]), original["properties"]["counts"])
+                self.assertEqual(json.loads(properties["usage"]), original["properties"]["usage"])
+                for key, value in original["properties"]["counts"].items():
+                    self.assertEqual(properties["counts_" + key], value)
+            state = raindrop._read(folder / "delivery.json")
+            self.assertEqual(state["signals"]["status"], "superseded")
+            self.assertEqual(state["signals_wire"]["status"], "sent")
+            self.assertEqual(state["signals_wire"]["source_sha256"], state["signals"]["sha256"])
+            with self.assertRaises(raindrop.RaindropError):
+                raindrop.send_outbox(folder, CONFIG, transport)
+            raindrop.send_signals(folder, CONFIG, transport)
+            self.assertEqual(transport.call_count, 1)
+            for name, content in originals.items():
+                self.assertEqual((folder / name).read_bytes(), content)
+            self.assertNotIn("private-write-key", (folder / "delivery.json").read_text())
+
+    def test_uncertain_signal_write_blocks_both_senders_and_never_resends_events(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = self.ready(directory)
+            transport = MagicMock(side_effect=raindrop.RaindropError("network", "timeout"))
+            with self.assertRaises(raindrop.RaindropError):
+                raindrop.send_signals(folder, CONFIG, transport)
+            self.assertEqual(raindrop._read(folder / "delivery.json")["signals_wire"]["status"], "unknown")
+            for sender in (raindrop.send_signals, raindrop.send_outbox):
+                with self.assertRaises(raindrop.RaindropError):
+                    sender(folder, CONFIG, transport)
+            self.assertEqual(transport.call_count, 1)
+
+    def test_interruption_during_preparation_fences_old_sender_and_can_finish_without_duplicate_post(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = self.ready(directory)
+            transport = MagicMock(return_value={"http_status": 204})
+            writer = raindrop.write_json
+
+            def interrupted(path, value):
+                if Path(path).name == "signals-flat-v1.json":
+                    raise OSError("simulated local interruption")
+                return writer(path, value)
+
+            with patch.object(raindrop, "write_json", side_effect=interrupted), self.assertRaises(OSError):
+                raindrop.send_signals(folder, CONFIG, transport)
+            self.assertEqual(raindrop._read(folder / "delivery.json")["signals_wire"]["status"], "preparing")
+            with self.assertRaises(raindrop.RaindropError):
+                raindrop.send_outbox(folder, CONFIG, transport)
+            transport.assert_not_called()
+            raindrop.send_signals(folder, CONFIG, transport)
+            self.assertEqual(transport.call_count, 1)
+
+    def test_payload_project_and_readback_proof_changes_prevent_any_post(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = self.ready(directory)
+            transport = MagicMock()
+            for name in ("events.json", "signals.json", "query-receipt.json"):
+                path = folder / name
+                original = path.read_bytes()
+                value = raindrop._read(path)
+                if isinstance(value, list):
+                    value[0]["event_id"] += "-changed"
+                else:
+                    value["verified"] = {}
+                write(path, value)
+                with self.assertRaises(raindrop.RaindropError):
+                    raindrop.send_signals(folder, CONFIG, transport)
+                path.write_bytes(original)
+            with self.assertRaises(raindrop.RaindropError):
+                raindrop.send_signals(folder, {**CONFIG, "RAINDROP_PROJECT_ID": "wrong-project"}, transport)
+            transport.assert_not_called()
+
+    def test_reserved_delivery_or_changed_derived_payload_cannot_be_retried(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = self.ready(directory)
+            transport = MagicMock(return_value={"http_status": 200})
+            raindrop.send_signals(folder, CONFIG, transport)
+            state = raindrop._read(folder / "delivery.json")
+            state["signals_wire"]["status"] = "reserved"
+            write(folder / "delivery.json", state)
+            with self.assertRaises(raindrop.RaindropError):
+                raindrop.send_signals(folder, CONFIG, transport)
+            state["signals_wire"]["status"] = "sent"
+            write(folder / "delivery.json", state)
+            payload = raindrop._read(folder / "signals-flat-v1.json")
+            payload[0]["properties"]["counts_correct_field_decisions"] += 1
+            write(folder / "signals-flat-v1.json", payload)
+            with self.assertRaises(raindrop.RaindropError):
+                raindrop.send_signals(folder, CONFIG, transport)
+            self.assertEqual(transport.call_count, 1)
+
+
 if __name__ == "__main__":
     unittest.main()

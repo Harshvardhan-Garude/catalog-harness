@@ -8,8 +8,12 @@ assistant_output, model and properties. The query key is separate from the
 write key. Project visibility: https://www.raindrop.ai/docs/platform/projects/.
 
 This module cannot send events/signals, run models, or change Atlas. A missing
-event does not prove ingestion failed. Only exact positive readback of every
-outbox event can reconcile an unknown/reserved delivery. Event detail signals
+event does not prove ingestion failed. Every core field and expected scalar
+property must match before an unknown/reserved delivery can be reconciled.
+Missing model_usage/request_configuration properties are recorded explicitly;
+the latter must also be proved from its exact duplicate in the input text.
+Missing usage remains local-ledger metadata, not verified Raindrop metadata.
+Event detail signals
 expose names/IDs, not the aggregate properties, so signal delivery is unchanged.
 """
 
@@ -40,6 +44,7 @@ RECEIPT_NAME = "query-receipt.json"
 MAX_EVENTS = 31
 HASH = re.compile(r"[0-9a-f]{64}")
 EVENT_ID = re.compile(r"[A-Za-z0-9_.:-]{1,256}")
+OPTIONAL_NESTED = {"model_usage", "request_configuration"}
 
 
 def _now():
@@ -152,47 +157,93 @@ def _precheck(outbox, config):
     return manifest, state, events
 
 
-def _matches(event, response):
+def _coverage_record(missing):
+    return {"version": 2, "core_verified": True, "scalar_properties_verified": True,
+            "request_configuration_verified_via_input": True,
+            "missing_nested_metadata": sorted(missing), "nested_metadata_verified": not missing,
+            "model_usage_readback_verified": "model_usage" not in missing,
+            "local_usage_only": "model_usage" in missing}
+
+
+def _coverage(event, response):
+    """Return exact proof coverage, or None for any content/provenance mismatch.
+
+    Missing values are permitted only for the two observed nested metadata
+    fields. Every provided value, including nested values, must match exactly.
+    This does not infer that Query API omissions prove an ingestion-side drop.
+    """
     data = response.get("data") if isinstance(response, dict) else None
     if not isinstance(data, dict):
-        return False
+        return None
     expected = {"id": event["event_id"], "event_name": event["event"], "user_id": event["user_id"],
                 "convo_id": event["ai_data"]["convo_id"], "model": event["ai_data"]["model"],
                 "user_input": event["ai_data"]["input"], "assistant_output": event["ai_data"]["output"]}
     if any(data.get(name) != value for name, value in expected.items()):
-        return False
+        return None
     actual_properties = data.get("properties")
-    if not isinstance(actual_properties, dict) or not set(event["properties"]) <= set(actual_properties):
-        return False
-    # Canonical JSON distinguishes booleans from numbers and covers nested schema,
-    # exact usage, run links and aggregate metadata without logging their values.
-    return _digest(event["properties"]) == _digest({name: actual_properties[name]
-                                                   for name in event["properties"]})
+    if not isinstance(actual_properties, dict):
+        return None
+    missing = set()
+    for name, value in event["properties"].items():
+        if name not in actual_properties:
+            if name not in OPTIONAL_NESTED or not isinstance(value, dict):
+                return None
+            missing.add(name)
+        # Canonical JSON also distinguishes booleans from numbers in properties.
+        elif _digest(actual_properties[name]) != _digest(value):
+            return None
+    config = event["properties"].get("request_configuration")
+    if not isinstance(config, dict) or not config or not isinstance(event["properties"].get("model_usage"), dict):
+        return None
+    try:
+        actual_input = json.loads(data["user_input"])
+    except (ValueError, TypeError):
+        return None
+    if (not isinstance(actual_input, dict) or not set(config) <= set(actual_input) or
+            _digest(config) != _digest({name: actual_input[name] for name in config})):
+        return None
+    return _coverage_record(missing)
+
+
+def _matches(event, response):
+    """Compatibility helper: core match with explicitly recorded metadata coverage."""
+    return _coverage(event, response) is not None
 
 
 def _receipt(outbox, manifest, events, project):
-    binding = {"version": 1, "project_id": project, "manifest_sha256": _digest(manifest),
+    binding = {"version": 2, "project_id": project, "manifest_sha256": _digest(manifest),
                "events_sha256": manifest["events_sha256"], "signals_sha256": manifest["signals_sha256"]}
     path = outbox / RECEIPT_NAME
     if not path.exists():
         return {**binding, "verified": {}}
     receipt = _read(path)
+    # An empty legacy receipt contains no proofs to reinterpret. Nonempty old
+    # receipts must not silently gain coverage that their schema never recorded.
+    if isinstance(receipt, dict) and receipt.get("version") == 1 and receipt.get("verified") == {}:
+        receipt["version"] = 2
     if (not isinstance(receipt, dict) or any(receipt.get(key) != value for key, value in binding.items())
             or not isinstance(receipt.get("verified"), dict)):
         raise RaindropError("local", "query_receipt_changed")
-    expected = {event["event_id"]: _digest(event) for event in events}
+    expected = {event["event_id"]: event for event in events}
     for identity, proof in receipt["verified"].items():
         if (identity not in expected or not isinstance(proof, dict) or
-                proof.get("expected_sha256") != expected[identity] or
+                proof.get("expected_sha256") != _digest(expected[identity]) or
                 not isinstance(proof.get("response_sha256"), str) or
                 not HASH.fullmatch(proof["response_sha256"]) or
                 not isinstance(proof.get("verified_at"), str) or not proof["verified_at"]):
+            raise RaindropError("local", "query_receipt_changed")
+        coverage = proof.get("coverage")
+        missing = coverage.get("missing_nested_metadata") if isinstance(coverage, dict) else None
+        if (not isinstance(missing, list) or any(not isinstance(name, str) for name in missing) or
+                len(set(missing)) != len(missing) or not set(missing) <= OPTIONAL_NESTED or
+                any(not isinstance(expected[identity]["properties"].get(name), dict) for name in missing) or
+                coverage != _coverage_record(set(missing))):
             raise RaindropError("local", "query_receipt_changed")
     return receipt
 
 
 def verify_outbox(outbox=OUTBOX, config=None, transport=None):
-    """Resume exact positive GET proofs, then reconcile delivery under its lock.
+    """Resume exact core GET proofs, then reconcile delivery with coverage.
 
     ``transport(event_id, config)`` returns the complete Query API response. It is
     injected only for offline tests. CLI summaries never contain fetched content,
@@ -212,12 +263,24 @@ def verify_outbox(outbox=OUTBOX, config=None, transport=None):
         receipt = _receipt(outbox, manifest, events, config["RAINDROP_PROJECT_ID"])
         calls = 0
 
+        def coverage_summary(complete):
+            proofs = [proof["coverage"] for proof in receipt["verified"].values()]
+            missing = {name: sum(name in proof["missing_nested_metadata"] for proof in proofs)
+                       for name in sorted(OPTIONAL_NESTED)}
+            return {"core_events_verified": complete,
+                    "nested_metadata_verified": complete and all(proof["nested_metadata_verified"] for proof in proofs),
+                    "missing_nested_metadata": {name: count for name, count in missing.items() if count},
+                    "local_usage_only": not complete or any(proof["local_usage_only"] for proof in proofs),
+                    "request_configuration_verified_via_input_events": len(proofs),
+                    "usage_readback_verified_events": sum(proof["model_usage_readback_verified"] for proof in proofs)}
+
         def summary(status, error=None, reconciled=False):
+            signals = state.get("signals_wire") if state["signals"].get("status") == "superseded" else None
             result = {"status": status, "expected_events": len(events),
                       "verified_events": len(receipt["verified"]), "network_gets_added": calls,
                       "model_calls_added": 0, "events_reconciled": reconciled,
-                      "signals_status": state["signals"].get("status"),
-                      "signal_properties_verified": False}
+                      "signals_status": signals.get("status") if isinstance(signals, dict) else state["signals"].get("status"),
+                      "signal_properties_verified": False, **coverage_summary(status == "verified")}
             if error is not None:
                 result["error"] = {"category": error.category, "code": error.code}
             return result
@@ -229,10 +292,11 @@ def verify_outbox(outbox=OUTBOX, config=None, transport=None):
             calls += 1
             try:
                 response = transport(identity, config)
-                if not _matches(event, response):
+                coverage = _coverage(event, response)
+                if coverage is None:
                     raise RaindropError("verification", "event_content_mismatch")
                 receipt["verified"][identity] = {"expected_sha256": _digest(event),
-                    "response_sha256": _digest(response), "verified_at": _now()}
+                    "response_sha256": _digest(response), "verified_at": _now(), "coverage": coverage}
                 receipt.pop("last_error", None)
                 write_json(outbox / RECEIPT_NAME, receipt)
             except RaindropError as error:
@@ -255,7 +319,8 @@ def verify_outbox(outbox=OUTBOX, config=None, transport=None):
         proof = {"method": "GET", "verified_at": _now(), "events": len(events),
                  "events_sha256": manifest["events_sha256"], "signals_sha256": manifest["signals_sha256"],
                  "receipt_sha256": _digest(receipt),
-                 "original_status": state["events"].get("query_verification", {}).get("original_status", original_status)}
+                 "original_status": state["events"].get("query_verification", {}).get("original_status", original_status),
+                 **coverage_summary(True)}
         # Keep the original error for provenance, including a lost HTTP status.
         state["events"].update(status="sent", query_verification=proof)
         write_json(outbox / "delivery.json", state)

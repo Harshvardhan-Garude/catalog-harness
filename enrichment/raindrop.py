@@ -326,17 +326,126 @@ def send_outbox(outbox=OUTBOX, config=None, transport=None):
     return {"status": "sent", "events": manifest["events"], "signals": manifest["signals"], "model_calls_added": 0}
 
 
+def _flat_signals(signals):
+    """Derive scalar metric properties without changing the saved source payload."""
+    result = []
+    for signal in signals:
+        _safe_content(signal)
+        properties = dict(signal["properties"])
+        counts, usage = properties.pop("counts"), _usage(properties.pop("usage"))
+        if (properties.get("scope") != "variant_aggregate" or properties.get("historical") is not True
+                or not isinstance(counts, dict) or set(counts) != COUNT_KEYS or
+                any(type(value) is not int or value < 0 for value in counts.values())):
+            raise RaindropError("local", "aggregate_unverified")
+        properties.update({"counts_" + key: value for key, value in counts.items()})
+        properties.update({"usage_" + key: value for key, value in usage.items()})
+        properties["counts"] = json.dumps(counts, sort_keys=True, allow_nan=False)
+        properties["usage"] = json.dumps(usage, sort_keys=True, allow_nan=False)
+        properties["metric_encoding"] = "flat-v1"
+        properties["usage_source"] = "completed_local_model_call_ledger"
+        if any(value is not None and type(value) not in (str, int, float, bool) for value in properties.values()):
+            raise RaindropError("local", "invalid_metric_property")
+        result.append({**signal, "properties": properties})
+    _encode(result)
+    return result
+
+
+def send_signals(outbox=OUTBOX, config=None, transport=None):
+    """One signals-only POST after positive event readback; never resends events.
+
+    Preserve the original immutable payload. Fence its sender before preparing a
+    derived scalar-metric payload. Unknown/reserved writes cannot be retried.
+    """
+    config, missing = configuration() if config is None else _configuration_values(config)
+    if missing:
+        return {"status": "missing_configuration", "missing": missing}
+    outbox, transport = Path(outbox), transport or post_array
+    with (outbox / "delivery.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            raise RaindropError("local", "delivery_locked") from None
+        manifest, state = _read(outbox / "manifest.json"), _read(outbox / "delivery.json")
+        if state.get("project_id") != config["RAINDROP_PROJECT_ID"]:
+            raise RaindropError("local", "delivery_project_changed")
+        payloads = {}
+        for name in ("events", "signals"):
+            payload = _read(outbox / (name + ".json"))
+            if (not isinstance(payload, list) or manifest.get(name) != len(payload) or
+                    _digest(payload) != manifest.get(name + "_sha256") or
+                    _digest(payload) != state[name].get("sha256")):
+                raise RaindropError("local", "outbox_changed")
+            payloads[name] = payload
+        identities = {event["event_id"] for event in payloads["events"]}
+        if (len(identities) != len(payloads["events"]) or not 1 <= len(payloads["signals"]) <= 6 or
+                any(signal.get("event_id") not in identities for signal in payloads["signals"])):
+            raise RaindropError("local", "signal_identity_invalid")
+        proof = state["events"].get("query_verification", {})
+        receipt = _read(outbox / "query-receipt.json")
+        if (state["events"]["status"] != "sent" or proof.get("method") != "GET" or
+                proof.get("events") != len(identities) or proof.get("events_sha256") != manifest["events_sha256"] or
+                proof.get("signals_sha256") != manifest["signals_sha256"] or
+                proof.get("receipt_sha256") != _digest(receipt) or
+                set(receipt.get("verified", {})) != identities):
+            raise RaindropError("local", "events_readback_required")
+        payload = _flat_signals(payloads["signals"])
+        binding = {"format": "flat-metrics-v1", "sha256": _digest(payload),
+                   "source_sha256": manifest["signals_sha256"], "events_sha256": manifest["events_sha256"]}
+        if state["signals"]["status"] == "pending" and "signals_wire" not in state:
+            if any(key in state["signals"] for key in ("error", "http_status", "acknowledged_at")):
+                raise RaindropError("local", "signals_attempted_or_failed")
+            state["signals"].update(status="superseded", superseded_by="signals_wire")
+            state["signals_wire"] = {**binding, "status": "preparing"}
+            write_json(outbox / "delivery.json", state)
+        delivery = state.get("signals_wire", {})
+        if (state["signals"].get("status") != "superseded" or state["signals"].get("superseded_by") != "signals_wire"
+                or any(delivery.get(key) != value for key, value in binding.items())):
+            raise RaindropError("local", "derived_delivery_changed")
+        if delivery.get("status") not in ("preparing", "pending", "sent"):
+            raise RaindropError("local", "delivery_uncertain_or_failed")
+        wire_path = outbox / "signals-flat-v1.json"
+        if wire_path.exists():
+            if _digest(_read(wire_path)) != binding["sha256"]:
+                raise RaindropError("local", "derived_payload_changed")
+        elif delivery["status"] == "preparing":
+            write_json(wire_path, payload)
+        else:
+            raise RaindropError("local", "derived_payload_missing")
+        if delivery["status"] == "preparing":
+            delivery["status"] = "pending"
+            write_json(outbox / "delivery.json", state)
+        if delivery["status"] != "sent":
+            delivery["status"] = "reserved"
+            write_json(outbox / "delivery.json", state)
+            try:
+                acknowledgement = transport("signals", payload, config)
+                if (not isinstance(acknowledgement, dict) or type(acknowledgement.get("http_status")) is not int
+                        or not 200 <= acknowledgement["http_status"] < 300):
+                    raise RaindropError("response", "invalid_acknowledgement")
+            except Exception as error:
+                safe = error if isinstance(error, RaindropError) else RaindropError("local", "delivery_failed")
+                delivery.update(status="failed" if safe.category in ("authentication", "permission", "configuration") else "unknown",
+                                error={"category": safe.category, "code": safe.code})
+                write_json(outbox / "delivery.json", state)
+                raise safe from None
+            delivery.update(status="sent", http_status=acknowledgement["http_status"],
+                            acknowledged_at=datetime.now(timezone.utc).isoformat())
+            write_json(outbox / "delivery.json", state)
+        return {"status": "sent", "signals": len(payload), "http_status": delivery["http_status"],
+                "events_retransmitted": 0, "model_calls_added": 0, "signal_properties_verified": False}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("export", "send", "status"))
+    parser.add_argument("command", choices=("export", "send", "send-signals", "status"))
     parser.add_argument("--historical", action="store_true", help="Also import the completed original 19 calls")
     parser.add_argument("--outbox", type=Path, default=OUTBOX)
     args = parser.parse_args(argv)
     try:
         if args.command == "export":
             result = export_outbox(outbox=args.outbox, include_historical=args.historical)
-        elif args.command == "send":
-            result = send_outbox(args.outbox)
+        elif args.command in ("send", "send-signals"):
+            result = send_signals(args.outbox) if args.command == "send-signals" else send_outbox(args.outbox)
             if result.get("missing"):
                 print("Missing: " + ", ".join(result["missing"]))
                 return 1
@@ -344,6 +453,8 @@ def main(argv=None):
             state = _read(args.outbox / "delivery.json")
             result = {"version": state.get("version"), "project_configured": bool(state.get("project_id")),
                       "events": state.get("events"), "signals": state.get("signals")}
+            if "signals_wire" in state:
+                result["signals_wire"] = state["signals_wire"]
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0
     except RaindropError as error:

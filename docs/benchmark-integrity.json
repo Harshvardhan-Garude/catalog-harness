@@ -1,0 +1,42 @@
+{
+  "atlas_report_matches_local": true,
+  "checked_at": "2026-10-11T23:08:29.236767+00:00",
+  "datasets": [
+    {
+      "dataset_id": "benchmark-v1-seed4102026-n1000",
+      "output_count": 1000,
+      "raw_count": 1000,
+      "repeat_inserted": 0
+    },
+    {
+      "dataset_id": "benchmark-v1-seed4102026-n10000",
+      "output_count": 10000,
+      "raw_count": 10000,
+      "repeat_inserted": 0
+    },
+    {
+      "dataset_id": "benchmark-v1-seed4102026-n50000",
+      "output_count": 50000,
+      "raw_count": 50000,
+      "repeat_inserted": 0
+    }
+  ],
+  "existing_catalog_and_experiments_unchanged": true,
+  "existing_data": {
+    "catalog_harness_enrichment_experiments": {
+      "count": 2,
+      "sha256": "ca39aaeb96a4ca2e778219a5ded0b9986d0513459e664ee5b17d08576e259a8b"
+    },
+    "catalog_harness_raw": {
+      "count": 360,
+      "sha256": "cc642a89415f2d70dd38c3081623a5dfbf500dd26236dcc00861e75b244b6ef7"
+    }
+  },
+  "fresh_local_directory_restored_completed_atlas_report": true,
+  "frozen_manifest_verified": true,
+  "initial_timings_preserved_on_restoration": true,
+  "model_calls_added": 0,
+  "raindrop_operations_added": 0,
+  "restoration_skipped_benchmark_store_creation": true,
+  "status": "passed"
+}

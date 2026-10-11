@@ -1,0 +1,594 @@
+{
+  "batch_size": 100,
+  "benchmark_id": "benchmark-v1",
+  "completed_at": "2026-10-11T23:08:07.505652+00:00",
+  "dataset_mode": "separate",
+  "datasets": [
+    {
+      "aggregation": [
+        {
+          "records": 225,
+          "status": "normalized",
+          "supplier_id": "cedar"
+        },
+        {
+          "records": 25,
+          "status": "quarantined",
+          "supplier_id": "cedar"
+        },
+        {
+          "records": 69,
+          "status": "normalized",
+          "supplier_id": "harbor"
+        },
+        {
+          "records": 31,
+          "status": "quarantined",
+          "supplier_id": "harbor"
+        },
+        {
+          "records": 443,
+          "status": "normalized",
+          "supplier_id": "northstar"
+        },
+        {
+          "records": 207,
+          "status": "quarantined",
+          "supplier_id": "northstar"
+        }
+      ],
+      "completed_at": "2026-10-11T22:51:19.604970+00:00",
+      "dataset_id": "benchmark-v1-seed4102026-n1000",
+      "integrity": {
+        "outputs_reconcile": true,
+        "raw_unchanged": true,
+        "repeat_seed_no_duplicates": true
+      },
+      "output_count": 1000,
+      "processing": {
+        "normalized": 737,
+        "quarantined": 263,
+        "records_per_second": 173.78350860568057,
+        "seconds": 5.75428593900142
+      },
+      "query": {
+        "collection_scan": {
+          "execution_stats": {
+            "docs_examined": 1000,
+            "keys_examined": 0,
+            "n_returned": 25
+          },
+          "median_ms": 212.1038964978652,
+          "p95_ms": 346.0883920051856,
+          "page_sha256": "c3cfffd4ee8cc8e5078cc17fa655f43134805a1aa825366138cc09626ecbf8c9",
+          "returned": 25,
+          "samples": 20,
+          "samples_ms": [
+            317.4593560033827,
+            295.07528199610533,
+            223.87648400035687,
+            94.42976099671796,
+            221.25802600203315,
+            64.60027399589308,
+            160.88000799936708,
+            275.1608159960597,
+            338.2871950016124,
+            78.13753599475604,
+            156.90408799855504,
+            73.39529700402636,
+            272.49338499677833,
+            254.39436900342116,
+            346.3876559981145,
+            47.23345700040227,
+            201.8561189979664,
+            32.09119000530336,
+            202.94976699369727,
+            346.0883920051856
+          ]
+        },
+        "filter": {
+          "dataset_id": "benchmark-v1-seed4102026-n1000",
+          "source_record_id": {
+            "$gt": "bench-00000100"
+          },
+          "status": "quarantined",
+          "supplier_id": "northstar"
+        },
+        "index_keys": [
+          [
+            "dataset_id",
+            1
+          ],
+          [
+            "supplier_id",
+            1
+          ],
+          [
+            "status",
+            1
+          ],
+          [
+            "source_record_id",
+            1
+          ]
+        ],
+        "index_name": "benchmark_catalog_queue",
+        "indexed": {
+          "execution_stats": {
+            "docs_examined": 25,
+            "keys_examined": 25,
+            "n_returned": 25
+          },
+          "median_ms": 47.26625499461079,
+          "p95_ms": 226.91847799433162,
+          "page_sha256": "c3cfffd4ee8cc8e5078cc17fa655f43134805a1aa825366138cc09626ecbf8c9",
+          "returned": 25,
+          "samples": 20,
+          "samples_ms": [
+            212.35755900124786,
+            37.711700999352615,
+            63.31621899880702,
+            21.70465599920135,
+            24.570565001340583,
+            47.133213993220124,
+            107.04991599777713,
+            90.96561600017594,
+            101.29421100282343,
+            42.23079199437052,
+            44.21732199989492,
+            226.91847799433162,
+            164.48825200495776,
+            35.049484999035485,
+            47.399295996001456,
+            31.300346003263257,
+            45.40712400194025,
+            35.42223599652061,
+            219.23868900194066,
+            388.7425520006218
+          ]
+        },
+        "limit": 25,
+        "network_included": true,
+        "output_collection_count_at_measurement": 1000,
+        "pagination": "keyset after source_record_id bench-00000100",
+        "same_page_verified": true,
+        "sort": [
+          [
+            "source_record_id",
+            1
+          ]
+        ]
+      },
+      "raw_after": {
+        "count": 1000,
+        "sha256": "b6ee3e5d754a6a7eb270f1e8abaae24bd1ffeb949e13f5c0a5131f8293aef959"
+      },
+      "raw_before": {
+        "count": 1000,
+        "sha256": "b6ee3e5d754a6a7eb270f1e8abaae24bd1ffeb949e13f5c0a5131f8293aef959"
+      },
+      "raw_count": 1000,
+      "requested_records": 1000,
+      "seed_initial": {
+        "existing_before": 0,
+        "inserted": 1000,
+        "matched": 0,
+        "measurement": "initial_insertion",
+        "raw_count": 1000,
+        "records_per_second": 651.585860487395,
+        "seconds": 1.5347171579996939
+      },
+      "seed_repeat": {
+        "existing_before": 1000,
+        "inserted": 0,
+        "matched": 1000,
+        "measurement": "upsert_with_existing_records",
+        "raw_count": 1000,
+        "records_per_second": 1346.725036010834,
+        "seconds": 0.7425420729996404
+      },
+      "stage": "completed",
+      "started_at": "2026-10-11T22:50:54.569807+00:00",
+      "status": "completed"
+    },
+    {
+      "aggregation": [
+        {
+          "records": 2242,
+          "status": "normalized",
+          "supplier_id": "cedar"
+        },
+        {
+          "records": 258,
+          "status": "quarantined",
+          "supplier_id": "cedar"
+        },
+        {
+          "records": 684,
+          "status": "normalized",
+          "supplier_id": "harbor"
+        },
+        {
+          "records": 316,
+          "status": "quarantined",
+          "supplier_id": "harbor"
+        },
+        {
+          "records": 4519,
+          "status": "normalized",
+          "supplier_id": "northstar"
+        },
+        {
+          "records": 1981,
+          "status": "quarantined",
+          "supplier_id": "northstar"
+        }
+      ],
+      "completed_at": "2026-10-11T22:55:00.976778+00:00",
+      "dataset_id": "benchmark-v1-seed4102026-n10000",
+      "integrity": {
+        "outputs_reconcile": true,
+        "raw_unchanged": true,
+        "repeat_seed_no_duplicates": true
+      },
+      "output_count": 10000,
+      "processing": {
+        "normalized": 7445,
+        "quarantined": 2555,
+        "records_per_second": 143.94084815907303,
+        "seconds": 69.47298232499452
+      },
+      "query": {
+        "collection_scan": {
+          "execution_stats": {
+            "docs_examined": 11000,
+            "keys_examined": 0,
+            "n_returned": 25
+          },
+          "median_ms": 79.60026249929797,
+          "p95_ms": 121.41506199986907,
+          "page_sha256": "a267a0e9849e5f57e4da0c6cf90c3c15b6e705d01d644835633e34de25356c40",
+          "returned": 25,
+          "samples": 20,
+          "samples_ms": [
+            98.71351900073932,
+            51.865735003957525,
+            97.85107099742163,
+            58.43573300080607,
+            121.41506199986907,
+            103.48517399688717,
+            93.73123900149949,
+            67.43164899671683,
+            224.5052219950594,
+            77.90804999967804,
+            73.3423630008474,
+            84.77246999973431,
+            81.2924749989179,
+            105.22103800030891,
+            70.18982600129675,
+            56.88821299554547,
+            43.50302099919645,
+            72.63465400319546,
+            56.878281000535935,
+            100.73491500224918
+          ]
+        },
+        "filter": {
+          "dataset_id": "benchmark-v1-seed4102026-n10000",
+          "source_record_id": {
+            "$gt": "bench-00000100"
+          },
+          "status": "quarantined",
+          "supplier_id": "northstar"
+        },
+        "index_keys": [
+          [
+            "dataset_id",
+            1
+          ],
+          [
+            "supplier_id",
+            1
+          ],
+          [
+            "status",
+            1
+          ],
+          [
+            "source_record_id",
+            1
+          ]
+        ],
+        "index_name": "benchmark_catalog_queue",
+        "indexed": {
+          "execution_stats": {
+            "docs_examined": 25,
+            "keys_examined": 25,
+            "n_returned": 25
+          },
+          "median_ms": 28.513315501186298,
+          "p95_ms": 73.07417500123847,
+          "page_sha256": "a267a0e9849e5f57e4da0c6cf90c3c15b6e705d01d644835633e34de25356c40",
+          "returned": 25,
+          "samples": 20,
+          "samples_ms": [
+            17.281522996199783,
+            15.71603099728236,
+            41.37583799456479,
+            14.343210998049472,
+            16.352155005733948,
+            98.52885300642811,
+            47.158173998468556,
+            22.34180099912919,
+            15.136494002945255,
+            73.07417500123847,
+            25.769532003323548,
+            18.104862996551674,
+            22.831729002064094,
+            31.25709899904905,
+            51.564722998591606,
+            66.78810699668247,
+            16.843462995893788,
+            36.63364500243915,
+            65.53525399795035,
+            40.50382300192723
+          ]
+        },
+        "limit": 25,
+        "network_included": true,
+        "output_collection_count_at_measurement": 11000,
+        "pagination": "keyset after source_record_id bench-00000100",
+        "same_page_verified": true,
+        "sort": [
+          [
+            "source_record_id",
+            1
+          ]
+        ]
+      },
+      "raw_after": {
+        "count": 10000,
+        "sha256": "38f38fd8a398e68eb10eeb58610120c8cf7eecb958e5d843a71c7dd12c832f63"
+      },
+      "raw_before": {
+        "count": 10000,
+        "sha256": "38f38fd8a398e68eb10eeb58610120c8cf7eecb958e5d843a71c7dd12c832f63"
+      },
+      "raw_count": 10000,
+      "requested_records": 10000,
+      "seed_initial": {
+        "existing_before": 0,
+        "inserted": 10000,
+        "matched": 0,
+        "measurement": "initial_insertion",
+        "raw_count": 10000,
+        "records_per_second": 418.92473313619615,
+        "seconds": 23.870636439001828
+      },
+      "seed_repeat": {
+        "existing_before": 10000,
+        "inserted": 0,
+        "matched": 10000,
+        "measurement": "upsert_with_existing_records",
+        "raw_count": 10000,
+        "records_per_second": 239.1566857959537,
+        "seconds": 41.813591648999136
+      },
+      "stage": "completed",
+      "started_at": "2026-10-11T22:51:19.706063+00:00",
+      "status": "completed"
+    },
+    {
+      "aggregation": [
+        {
+          "records": 11238,
+          "status": "normalized",
+          "supplier_id": "cedar"
+        },
+        {
+          "records": 1262,
+          "status": "quarantined",
+          "supplier_id": "cedar"
+        },
+        {
+          "records": 3470,
+          "status": "normalized",
+          "supplier_id": "harbor"
+        },
+        {
+          "records": 1530,
+          "status": "quarantined",
+          "supplier_id": "harbor"
+        },
+        {
+          "records": 22710,
+          "status": "normalized",
+          "supplier_id": "northstar"
+        },
+        {
+          "records": 9790,
+          "status": "quarantined",
+          "supplier_id": "northstar"
+        }
+      ],
+      "completed_at": "2026-10-11T23:08:06.996103+00:00",
+      "dataset_id": "benchmark-v1-seed4102026-n50000",
+      "integrity": {
+        "outputs_reconcile": true,
+        "raw_unchanged": true,
+        "repeat_seed_no_duplicates": true
+      },
+      "output_count": 50000,
+      "processing": {
+        "normalized": 37418,
+        "quarantined": 12582,
+        "records_per_second": 242.27364159290252,
+        "seconds": 206.37820800999907
+      },
+      "query": {
+        "collection_scan": {
+          "execution_stats": {
+            "docs_examined": 61000,
+            "keys_examined": 0,
+            "n_returned": 25
+          },
+          "median_ms": 465.9002509979473,
+          "p95_ms": 2208.3852130017476,
+          "page_sha256": "54615b6098779b577b25982d4446c151dbf300589884c1f236ca86fd267ae239",
+          "returned": 25,
+          "samples": 20,
+          "samples_ms": [
+            421.9916789952549,
+            664.7893779954757,
+            1665.1195229933364,
+            384.94053900649305,
+            203.79832099570194,
+            366.5535350010032,
+            937.9854280050495,
+            269.9694309994811,
+            508.57495899981586,
+            333.66138500423403,
+            390.1797680009622,
+            341.27538000029745,
+            277.5714279996464,
+            423.22554299607873,
+            2000.4488790000323,
+            3501.150942000095,
+            1958.1915969974943,
+            2208.3852130017476,
+            958.861925995734,
+            755.5324619970634
+          ]
+        },
+        "filter": {
+          "dataset_id": "benchmark-v1-seed4102026-n50000",
+          "source_record_id": {
+            "$gt": "bench-00000100"
+          },
+          "status": "quarantined",
+          "supplier_id": "northstar"
+        },
+        "index_keys": [
+          [
+            "dataset_id",
+            1
+          ],
+          [
+            "supplier_id",
+            1
+          ],
+          [
+            "status",
+            1
+          ],
+          [
+            "source_record_id",
+            1
+          ]
+        ],
+        "index_name": "benchmark_catalog_queue",
+        "indexed": {
+          "execution_stats": {
+            "docs_examined": 25,
+            "keys_examined": 25,
+            "n_returned": 25
+          },
+          "median_ms": 44.420305002859095,
+          "p95_ms": 103.91132299992023,
+          "page_sha256": "54615b6098779b577b25982d4446c151dbf300589884c1f236ca86fd267ae239",
+          "returned": 25,
+          "samples": 20,
+          "samples_ms": [
+            27.847507000842597,
+            22.251244001381565,
+            15.849276001972612,
+            87.12199200090254,
+            145.89145699574146,
+            46.27855900616851,
+            34.15676799340872,
+            65.91741600277601,
+            89.63228100037668,
+            31.45943600247847,
+            22.808633002568968,
+            91.9652859956841,
+            55.70392899971921,
+            61.32166700263042,
+            102.44536700338358,
+            103.91132299992023,
+            42.56205099954968,
+            28.08765599911567,
+            23.11970799928531,
+            15.353718001279049
+          ]
+        },
+        "limit": 25,
+        "network_included": true,
+        "output_collection_count_at_measurement": 61000,
+        "pagination": "keyset after source_record_id bench-00000100",
+        "same_page_verified": true,
+        "sort": [
+          [
+            "source_record_id",
+            1
+          ]
+        ]
+      },
+      "raw_after": {
+        "count": 50000,
+        "sha256": "efd5c51f613edb88c9dcc5e8b06ea1ef376bc793103a7f841495ec21e7017a3f"
+      },
+      "raw_before": {
+        "count": 50000,
+        "sha256": "efd5c51f613edb88c9dcc5e8b06ea1ef376bc793103a7f841495ec21e7017a3f"
+      },
+      "raw_count": 50000,
+      "requested_records": 50000,
+      "seed_initial": {
+        "existing_before": 0,
+        "inserted": 50000,
+        "matched": 0,
+        "measurement": "initial_insertion",
+        "raw_count": 50000,
+        "records_per_second": 352.5316686759354,
+        "seconds": 141.8312294829957
+      },
+      "seed_repeat": {
+        "existing_before": 50000,
+        "inserted": 0,
+        "matched": 50000,
+        "measurement": "upsert_with_existing_records",
+        "raw_count": 50000,
+        "records_per_second": 602.4928702003458,
+        "seconds": 82.98853392800083
+      },
+      "stage": "completed",
+      "started_at": "2026-10-11T22:55:01.310727+00:00",
+      "status": "completed"
+    }
+  ],
+  "label": "50k synthetic database benchmark",
+  "limitations": [
+    "Synthetic supplier exports; no LLM enrichment or production-traffic claim.",
+    "Client-observed query latency includes network and cursor materialization.",
+    "Single laptop and Atlas sandbox; median/p95 from 20 requests after 2 warm-ups per plan.",
+    "Separate datasets share isolated benchmark collections; natural scans examine all populated namespaces.",
+    "Initial seed timing includes streamed generation and bulk upserts; processing includes reads and bulk writes.",
+    "Index is measured before forced scan; caches/network variability can dominate wall-clock latency.",
+    "p95 uses the nearest-rank definition; executionStats collected separately."
+  ],
+  "measured_requests": 20,
+  "model_calls_added": 0,
+  "plan_kind": "hand_authored_validated_deterministic",
+  "plan_sha256": "45db6002e3a62cdcc9d3a92e63d072d72e57f0a89dc2be93ab9431fd19e87a11",
+  "seed": 4102026,
+  "sizes": [
+    1000,
+    10000,
+    50000
+  ],
+  "started_at": "2026-10-11T22:50:54.288138+00:00",
+  "status": "completed",
+  "updated_at": "2026-10-11T23:08:07.505681+00:00",
+  "version": 1,
+  "warmup_requests": 2
+}

@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from catalog_harness import benchmark
-from catalog_harness.storage import stable_json
+from catalog_harness.storage import fingerprint, stable_json
 
 
 class MemoryCursor(list):
@@ -58,7 +58,7 @@ class MemoryCollection:
                              for row in self.rows.values()
                              if all(row.get(key) == value for key, value in query.items())), self)
 
-    def find_one(self, query, projection=None):
+    def find_one(self, query, projection=None, **kwargs):
         return next(iter(self.find(query, projection)), None)
 
     def count_documents(self, query, **kwargs):
@@ -253,9 +253,10 @@ class BenchmarkTests(unittest.TestCase):
                   "raw_count": 1000, "records_per_second": 2000, "measurement": "upsert_with_existing_records"}
         store = MagicMock()
         store.seed.side_effect = [initial, RuntimeError("private driver detail")]
+        database = MemoryDatabase()
         with tempfile.TemporaryDirectory() as directory, patch.object(benchmark, "BenchmarkStore", return_value=store):
             with self.assertRaises(RuntimeError):
-                benchmark.run_benchmark(object(), directory=directory, sizes=(1000,))
+                benchmark.run_benchmark(database, directory=directory, sizes=(1000,))
             saved = json.loads((Path(directory) / "report.json").read_text())
             self.assertEqual(saved["status"], "failed")
             self.assertEqual(saved["datasets"][0]["seed_initial"], initial)
@@ -272,14 +273,61 @@ class BenchmarkTests(unittest.TestCase):
             store.aggregation.return_value = [{"supplier_id": "northstar", "status": "normalized", "records": 800},
                                                {"supplier_id": "northstar", "status": "quarantined", "records": 200}]
             with patch.object(benchmark, "measure_query", return_value={"page_sha256": "same-page"}):
-                report = benchmark.run_benchmark(object(), directory=directory, sizes=(1000,))
+                report = benchmark.run_benchmark(database, directory=directory, sizes=(1000,))
             self.assertEqual(report["status"], "completed")
             self.assertEqual(report["datasets"][0]["seed_initial"], initial)
             store.seed.assert_called_once_with(1000)
             self.assertTrue(all(report["datasets"][0]["integrity"].values()))
             store.reset_mock()
-            self.assertEqual(benchmark.run_benchmark(object(), directory=directory, sizes=(1000,)), report)
+            self.assertEqual(benchmark.run_benchmark(database, directory=directory, sizes=(1000,)), report)
             self.assertEqual(store.mock_calls, [])
+
+    def completed_report(self):
+        """Distinguishable saved timings ensure restoration cannot remeasure them."""
+        return {"benchmark_id": benchmark.BENCHMARK_ID, "version": 1, "seed": benchmark.SEED,
+                "sizes": list(benchmark.SIZES), "status": "completed",
+                "plan_sha256": fingerprint(benchmark.load_plan()), "model_calls_added": 0,
+                "datasets": [{"dataset_id": benchmark.dataset_id(size), "requested_records": size,
+                              "status": "completed", "seed_initial": {"seconds": size / 17.0,
+                                  "inserted": size, "matched": 0, "measurement": "initial_insertion"},
+                              "seed_repeat": {"seconds": size / 29.0, "inserted": 0, "matched": size}}
+                             for size in benchmark.SIZES]}
+
+    def test_fresh_artifact_directory_restores_completed_atlas_report_without_writes_or_rerun(self):
+        saved = self.completed_report()
+        database = MagicMock()
+        collection = database.__getitem__.return_value
+        collection.find_one.return_value = copy.deepcopy(saved)
+        with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as fresh, \
+                patch.object(benchmark, "BenchmarkStore") as factory:
+            (Path(first) / "report.json").write_text(json.dumps(saved))
+            self.assertEqual(benchmark.run_benchmark(database, directory=first), saved)
+            database.__getitem__.assert_not_called()
+            self.assertFalse((Path(fresh) / "report.json").exists())
+            restored = benchmark.run_benchmark(database, directory=fresh)
+            self.assertEqual(restored, saved)
+            self.assertEqual(json.loads((Path(fresh) / "report.json").read_text()), saved)
+            database.__getitem__.assert_called_once_with("catalog_harness_benchmark_reports")
+            collection.find_one.assert_called_once()
+            self.assertEqual([call[0] for call in collection.mock_calls], ["find_one"])
+            factory.assert_not_called()
+
+    def test_incompatible_atlas_report_rejects_cold_start_without_local_or_database_writes(self):
+        valid = self.completed_report()
+        for field, value in (("benchmark_id", "other-benchmark"), ("seed", benchmark.SEED + 1),
+                             ("sizes", [1000]), ("plan_sha256", "different-plan")):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as fresh, \
+                    patch.object(benchmark, "BenchmarkStore") as factory:
+                saved = copy.deepcopy(valid)
+                saved[field] = value
+                database = MagicMock()
+                collection = database.__getitem__.return_value
+                collection.find_one.return_value = saved
+                with self.assertRaises(ValueError):
+                    benchmark.run_benchmark(database, directory=fresh)
+                self.assertFalse((Path(fresh) / "report.json").exists())
+                self.assertEqual([call[0] for call in collection.mock_calls], ["find_one"])
+                factory.assert_not_called()
 
     def test_reconciliation_detects_corruption_without_overwriting_raw_or_saved_output(self):
         store = benchmark.BenchmarkStore(MemoryDatabase())

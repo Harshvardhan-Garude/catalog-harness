@@ -103,6 +103,92 @@ or tune against final results. The final runner's completed path is read-only;
 its reserved phase/run IDs and batch cache support interruption recovery, never
 a second final experiment.
 
+## 50k synthetic database benchmark
+
+This is a database and deterministic-processing benchmark, with **zero model
+calls**. It does not represent 50,000 AI evaluations, production traffic, or
+horizontal scaling. Fixed-seed supplier records use three **separate datasets**
+of 1,000, 10,000, and 50,000 records (61,000 total in isolated benchmark
+collections). They reuse the existing allowlisted field cleanup, unit conversion,
+and ambiguity-quarantine rules. Frozen semantic fixtures, policies, evaluations,
+and original catalog records are outside this namespace.
+
+From the project root, using the existing event Atlas settings in the ignored
+`.env`:
+
+```bash
+.venv/bin/python -m catalog_harness.benchmark run
+.venv/bin/python -m catalog_harness.benchmark report
+```
+
+Completed reports are reused without repeating measurements, including when a
+fresh checkout restores the saved report from Atlas. Initial insertion timings
+must not be replaced with repeat-upsert timings. The `report` command is local
+and read-only; run it after restoring or completing the benchmark.
+
+The runner streams records and processes bounded bulk-write batches. Initial
+upserts and repeat seeding are measured separately. It checks raw fingerprints,
+input/output reconciliation, and repeat-seed counts. The compound index supports
+supplier/status filtering and stable pagination. The same bounded query is timed
+with that index and a forced collection scan, without dropping other indexes:
+two warm-ups and 20 measured requests per plan and dataset. Median and p95 are
+client-observed latencies **including network time**; separate `executionStats`
+reports returned documents, documents examined, and index keys examined. Supplier
+and status totals come from MongoDB aggregation.
+
+Actual laptop-to-Atlas measurements on October 11, 2026:
+
+| Records | Initial seed (s) | Repeat seed (s) | Processing (s) | Records/s | Normalized / quarantined |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1,000 | 1.53 | 0.74 | 5.75 | 173.8 | 737 / 263 |
+| 10,000 | 23.87 | 41.81 | 69.47 | 143.9 | 7,445 / 2,555 |
+| 50,000 | 141.83 | 82.99 | 206.38 | 242.3 | 37,418 / 12,582 |
+
+| Dataset | Indexed median / p95 (ms) | Scan median / p95 (ms) | Indexed / scan docs examined |
+| ---: | ---: | ---: | ---: |
+| 1,000 | 47.27 / 226.92 | 212.10 / 346.09 | 25 / 1,000 |
+| 10,000 | 28.51 / 73.07 | 79.60 / 121.42 | 25 / 11,000 |
+| 50,000 | 44.42 / 103.91 | 465.90 / 2208.39 | 25 / 61,000 |
+
+Each plan returned the same 25 records, with 20 timed samples after two warm-ups.
+The index examined 25 keys per dataset; scans examined zero index keys. The
+50k scan examined **61,000 documents** because the three separate datasets share
+the isolated output collection. All raw fingerprints and deterministic outputs
+reconciled; each repeat seed inserted **zero** records. Existing catalog records
+and both frozen experiment reports remained unchanged. The benchmark added
+**zero model calls and zero model tokens**; application API spending caps are unchanged.
+
+The public demo reads the completed report from Atlas. Its optional live catalog
+browser applies supplier/status filters and pagination on the server, with a
+fixed maximum of 25 records/page. It never loads the whole benchmark catalog
+into the browser or the startup cache. Full measurements and independent integrity
+evidence are in `docs/benchmark-results.json` and `docs/benchmark-integrity.json`.
+
+Saved reports live locally in `artifacts/benchmark-v1`, in the isolated Atlas
+report collection, and as sanitized submission evidence in
+`docs/benchmark-results.json`. Opening the demo reads saved measurements and never
+runs the benchmark. A local saved-report fallback is labelled explicitly.
+Measurements describe one laptop, one Atlas sandbox and this synthetic workload;
+warm caches, shared-tier scheduling, network variation, and the other size datasets
+in the same benchmark collection can affect results. A lower document scan count
+does not guarantee a lower wall-clock latency.
+
+## 60-second demo script
+
+1. **0–15 seconds:** Open a saved product with conflicting supplier descriptions.
+   Show the original fields and the baseline/candidate evidence and review reasons.
+2. **15–30 seconds:** Show the exact harness policy change. Validation correct
+   fields improved from 33/36 to 34/36 and unsupported assertions from four to
+   zero, while unnecessary abstentions increased from one to two. These are
+   frozen saved results; the final holdout adds only one correct field decision.
+3. **30–45 seconds:** Switch Homeware/Gift store profiles, preview placements,
+   and show a row requiring review. Display categories stay separate from product
+   facts; nothing is published to an external shop.
+4. **45–60 seconds:** Show the 50k synthetic database benchmark: actual counts,
+   deterministic throughput, supplier/review aggregation, and indexed versus
+   collection-scan latency/documents examined. State that this phase made zero
+   model calls. End with the public repository and the saved-result limitations.
+
 ## Python hosting and remaining plan
 
 The requested [Modelence skill](https://modelence.com/skill.md) and
@@ -126,6 +212,12 @@ the existing event demo database, and all four raw snapshots remained unchanged.
 `docs/public-deployment.json` preserves the initial failed data load and the
 successful subsequent verification. No deployment verification called a model.
 
+The benchmark deployment at `45df855` is also verified publicly: the completed
+Atlas report, all three measured datasets, supplier/status aggregation, and two
+distinct filtered pages of 25 records. Existing product inspection and both store
+previews pass desktop/mobile browser checks with zero JavaScript errors. Evidence
+is in `docs/benchmark-deployment.json` and `docs/benchmark-demo-verification.json`.
+
 In the hosting dashboard, set **CATALOG_MONGODB_URI** (secret) and
 **CATALOG_MONGODB_DATABASE** to the existing event Atlas database. Hosted startup
 requires those explicit names and ignores any automatically provisioned
@@ -146,8 +238,10 @@ event database. The lightweight server is intended for the hackathon demo; publi
 identity/authorization, multi-instance preview storage, and production hardening
 remain limitations.
 
-The first Python-host deployment and historical Raindrop event/signal links are
-verified. Next: **the 50k database benchmark**.
+The first Python-host deployment, historical Raindrop event/signal links, and
+**50k synthetic database benchmark** are verified. Remaining submission work:
+record the walkthrough and submit the public demo and repository links before
+5 PM Pacific. Atlas Search and further optimization are deferred.
 Any imports of saved runs must be labelled historical and must not rerun inference.
 Atlas Search and further optimization remain outside this milestone.
 
@@ -233,7 +327,7 @@ to rerun the completed evaluations.
 
 ## Current verification
 
-The complete **171-test** suite passes in the existing Python 3.8 environment.
+The complete **185-test** suite passes in the existing Python 3.8 environment.
 Headless Chrome verifies saved metrics, product search/filter/selection, original
 fields and both policy outputs, exact instructions, profile switching and staged
 preview, safe text rendering, and desktop/mobile layouts. A live Atlas check

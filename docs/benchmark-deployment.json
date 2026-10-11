@@ -1,0 +1,59 @@
+{
+  "actual_largest_dataset_records": 50000,
+  "browser_verification": "docs/benchmark-demo-verification.json",
+  "completed_report_source": "atlas",
+  "deployed_code_commit": "45df85527d51de14231c144a0b3f6301702520cc",
+  "existing_product_workflow_verified": true,
+  "final_benchmark_display_verified": true,
+  "final_checked_at": "2026-10-11T23:08:56.808240+00:00",
+  "initial_progress_check": {
+    "checked_at": "2026-10-11T22:59:56.794286+00:00",
+    "model_calls_added": 0,
+    "requests": {
+      "/api/benchmark": {
+        "browser_available": true,
+        "datasets": [
+          {
+            "raw_count": 1000,
+            "size": 1000,
+            "status": "completed"
+          },
+          {
+            "raw_count": 10000,
+            "size": 10000,
+            "status": "completed"
+          },
+          {
+            "raw_count": 50000,
+            "size": 50000,
+            "status": "running"
+          }
+        ],
+        "http_status": 200,
+        "source": "atlas",
+        "status": "running"
+      },
+      "/api/state": {
+        "http_status": 200,
+        "product_count": 36,
+        "source": "atlas"
+      },
+      "/healthz": {
+        "git_commit": "45df85527d51de14231c144a0b3f6301702520cc",
+        "http_status": 200,
+        "saved_results_available": true
+      }
+    },
+    "source": "public_render"
+  },
+  "javascript_exceptions": 0,
+  "kind": "public_benchmark_deployment_verification",
+  "limitations": [
+    "Client-observed benchmark measurements are from the laptop, not Render request latency.",
+    "One Atlas sandbox and synthetic deterministic data; no production or horizontal-scaling claim."
+  ],
+  "live_browser_page_size": 25,
+  "model_calls_added": 0,
+  "public_url": "https://catalog-harness.onrender.com/",
+  "status": "verified"
+}

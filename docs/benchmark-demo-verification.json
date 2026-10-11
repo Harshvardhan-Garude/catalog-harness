@@ -1,0 +1,119 @@
+{
+  "checked_at": "2026-10-11T23:08:56.808240+00:00",
+  "local": {
+    "acceptance_requests": 0,
+    "benchmark_id": "benchmark-v1",
+    "checks": [
+      "three separate measured datasets",
+      "initial/repeat/process throughput displayed",
+      "both query plans and executionStats displayed",
+      "supplier/status aggregation displayed",
+      "all integrity checks true",
+      "live cedar quarantine filter",
+      "25 rows per page",
+      "next page identities disjoint",
+      "invalid status rejected HTTP400",
+      "desktop/mobile no horizontal overflow",
+      "existing 36 listing workflow preserved"
+    ],
+    "displayed_processing": {
+      "normalized": 37418,
+      "quarantined": 12582,
+      "records_per_second": 242.27364159290252,
+      "seconds": 206.37820800999907
+    },
+    "displayed_query": {
+      "collection_scan": {
+        "execution_stats": {
+          "docs_examined": 61000,
+          "keys_examined": 0,
+          "n_returned": 25
+        },
+        "median_ms": 465.9002509979473,
+        "p95_ms": 2208.3852130017476,
+        "samples": 20
+      },
+      "indexed": {
+        "execution_stats": {
+          "docs_examined": 25,
+          "keys_examined": 25,
+          "n_returned": 25
+        },
+        "median_ms": 44.420305002859095,
+        "p95_ms": 103.91132299992023,
+        "samples": 20
+      }
+    },
+    "javascript_exceptions": 0,
+    "largest_output_count": 50000,
+    "largest_raw_count": 50000,
+    "model_calls_added": 0,
+    "report_status": "completed",
+    "screenshots": [
+      "/tmp/catalog-benchmark-local-demo.png",
+      "/tmp/catalog-benchmark-local-mobile.png"
+    ],
+    "source": "atlas",
+    "url": "http://127.0.0.1:8080"
+  },
+  "method": "Headless Chrome via CDP; saved-result display and read-only Atlas pagination",
+  "model_requests_performed": 0,
+  "public": {
+    "acceptance_requests": 0,
+    "benchmark_id": "benchmark-v1",
+    "checks": [
+      "three separate measured datasets",
+      "initial/repeat/process throughput displayed",
+      "both query plans and executionStats displayed",
+      "supplier/status aggregation displayed",
+      "all integrity checks true",
+      "live cedar quarantine filter",
+      "25 rows per page",
+      "next page identities disjoint",
+      "invalid status rejected HTTP400",
+      "desktop/mobile no horizontal overflow",
+      "existing 36 listing workflow preserved"
+    ],
+    "displayed_processing": {
+      "normalized": 37418,
+      "quarantined": 12582,
+      "records_per_second": 242.27364159290252,
+      "seconds": 206.37820800999907
+    },
+    "displayed_query": {
+      "collection_scan": {
+        "execution_stats": {
+          "docs_examined": 61000,
+          "keys_examined": 0,
+          "n_returned": 25
+        },
+        "median_ms": 465.9002509979473,
+        "p95_ms": 2208.3852130017476,
+        "samples": 20
+      },
+      "indexed": {
+        "execution_stats": {
+          "docs_examined": 25,
+          "keys_examined": 25,
+          "n_returned": 25
+        },
+        "median_ms": 44.420305002859095,
+        "p95_ms": 103.91132299992023,
+        "samples": 20
+      }
+    },
+    "javascript_exceptions": 0,
+    "largest_output_count": 50000,
+    "largest_raw_count": 50000,
+    "model_calls_added": 0,
+    "report_status": "completed",
+    "screenshots": [
+      "/tmp/catalog-benchmark-demo.png",
+      "/tmp/catalog-benchmark-mobile.png"
+    ],
+    "source": "atlas",
+    "url": "https://catalog-harness.onrender.com"
+  },
+  "visual_review": "Desktop and 390px mobile screenshots reviewed; tables scroll within their containers, all labels readable, no document overflow.",
+  "writes_performed": 0
+}

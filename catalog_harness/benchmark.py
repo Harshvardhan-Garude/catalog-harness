@@ -241,13 +241,23 @@ def run_benchmark(db, directory=DIRECTORY, sizes=SIZES):
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         plan = load_plan()
         path = directory / "report.json"
-        if path.exists():
-            saved = _read_report(path)
-            if (saved.get("benchmark_id") != BENCHMARK_ID or saved.get("seed") != SEED or
+        local_exists = path.exists()
+        # A fresh checkout has no ignored artifacts. Recover the immutable first
+        # measurements before any index/write work, rather than replacing them
+        # with upsert timings from an already populated Atlas namespace.
+        saved = (_read_report(path) if local_exists else db["catalog_harness_benchmark_reports"].find_one(
+            {"_id": BENCHMARK_ID}, {"_id": 0}, max_time_ms=20000))
+        if saved is not None:
+            if (not isinstance(saved, dict) or saved.get("benchmark_id") != BENCHMARK_ID or saved.get("seed") != SEED or
                     saved.get("sizes") != list(sizes) or saved.get("plan_sha256") != fingerprint(plan)):
                 raise ValueError("Existing benchmark identity differs")
+            if not local_exists:
+                if len(stable_json(saved).encode("utf-8")) > 1024 * 1024:
+                    raise ValueError("Benchmark report exceeds limit")
+                write_json(path, saved)
             if saved.get("status") == "completed":
-                return saved  # Preserve initial measurements; no automatic rerun.
+                # These are saved measurements, not a fresh integrity check.
+                return saved
             report = saved
             report["status"] = "running"
         else:

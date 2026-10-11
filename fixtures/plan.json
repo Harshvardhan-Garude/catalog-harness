@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "suppliers": {
+    "northstar": {
+      "fields": {"product_id": "sku", "name": "title", "weight": "weight", "unit": "weight_unit"},
+      "string_cleanup": ["strip", "collapse_whitespace"],
+      "numeric_parser": "decimal_dot",
+      "on_ambiguity": "quarantine"
+    },
+    "cedar": {
+      "fields": {"product_id": "product_code", "name": "description", "weight": "mass", "unit": "measurement_unit"},
+      "string_cleanup": ["strip", "collapse_whitespace"],
+      "numeric_parser": "decimal_dot",
+      "on_ambiguity": "quarantine"
+    },
+    "harbor": {
+      "fields": {"product_id": "item_id", "name": "label", "weight": "shipping_weight", "unit": "uom"},
+      "string_cleanup": ["strip", "collapse_whitespace"],
+      "numeric_parser": "decimal_dot",
+      "on_ambiguity": "quarantine"
+    }
+  }
+}

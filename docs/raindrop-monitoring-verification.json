@@ -1,0 +1,264 @@
+{
+  "additional_flags": {
+    "acknowledged_at": "2026-10-11T23:30:25.300037+00:00",
+    "aggregate_properties_readback_verified": false,
+    "counts_by_signal": {
+      "aggregate_evidence_checks_clean": 4,
+      "aggregate_evidence_issues_present": 2,
+      "aggregate_incorrect_fields_present": 6,
+      "aggregate_unnecessary_abstentions_present": 5,
+      "aggregate_unsupported_assertions_present": 5
+    },
+    "delivery_status": "sent",
+    "http_status": 204,
+    "linked_names_verified": 22,
+    "signal_types": 5,
+    "signals": 22,
+    "signals_sha256": "019c28e88afbb626f60ddfc03a98fc15958e13c4cf6d6b5ca5be8000dfe992f1"
+  },
+  "api_operations": {
+    "automatic_retries": 0,
+    "event_posts": 0,
+    "read_only_gets": 10,
+    "signals_only_posts": 1
+  },
+  "checked_at": "2026-10-11T23:30:48.899166+00:00",
+  "cumulative_application_cap_usd": 1.0,
+  "historical": true,
+  "input_tokens_added": 0,
+  "integrity": {
+    "changed_artifacts": [],
+    "freeze_sha256": "5474b4421fcf6f0ba083069329292c50d486b69fe24034d30642172719a22dd2",
+    "frozen_contract": "PASS",
+    "kind": "raindrop_monitoring_integrity",
+    "new_model_calls": 0,
+    "new_model_tokens": 0,
+    "protected_artifacts": 9
+  },
+  "kind": "historical_raindrop_monitoring_visibility_verification",
+  "limits": {
+    "custom_dashboard_created": false,
+    "historical_usage_traces_backfilled": false,
+    "native_costs_dashboard_verified": false,
+    "native_raindrop_experiments_created": false,
+    "signal_aggregate_properties_readback_verified": false,
+    "usage_source": "completed_local_model_call_ledgers"
+  },
+  "local_tests": {
+    "status": "passed",
+    "tests": 201
+  },
+  "model_calls_added": 0,
+  "new_model_cost_usd": 0,
+  "next_action": "Refresh the configured Raindrop project, choose Today or Last 7 days, and open Events or Signals > Instrumented.",
+  "original_aggregate_links_verified": 6,
+  "output_tokens_added": 0,
+  "phase_cap_usd": 0.5,
+  "recorded_cumulative_application_cost_estimate_usd": 0.0424452,
+  "status": "verified",
+  "total_aggregate_links_verified": 28,
+  "visibility": {
+    "aggregate_links": [
+      {
+        "core_content_match": true,
+        "event_role": "run_anchor_not_individual_call_attribution",
+        "expected_signal_names": [
+          "aggregate_evidence_issues_present",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "matched_signal_names": [
+          "aggregate_evidence_issues_present",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "missing_signal_names": [],
+        "phase": "final_holdout",
+        "scope": "variant_aggregate",
+        "split": "final",
+        "variant": "baseline"
+      },
+      {
+        "core_content_match": true,
+        "event_role": "run_anchor_not_individual_call_attribution",
+        "expected_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "matched_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "missing_signal_names": [],
+        "phase": "final_holdout",
+        "scope": "variant_aggregate",
+        "split": "final",
+        "variant": "candidate"
+      },
+      {
+        "core_content_match": true,
+        "event_role": "run_anchor_not_individual_call_attribution",
+        "expected_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "matched_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "missing_signal_names": [],
+        "phase": "development_validation",
+        "scope": "variant_aggregate",
+        "split": "development",
+        "variant": "baseline"
+      },
+      {
+        "core_content_match": true,
+        "event_role": "run_anchor_not_individual_call_attribution",
+        "expected_signal_names": [
+          "aggregate_evidence_issues_present",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "matched_signal_names": [
+          "aggregate_evidence_issues_present",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "missing_signal_names": [],
+        "phase": "development_validation",
+        "scope": "variant_aggregate",
+        "split": "validation",
+        "variant": "baseline"
+      },
+      {
+        "core_content_match": true,
+        "event_role": "run_anchor_not_individual_call_attribution",
+        "expected_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "matched_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "aggregate_unsupported_assertions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "missing_signal_names": [],
+        "phase": "development_validation",
+        "scope": "variant_aggregate",
+        "split": "development",
+        "variant": "candidate"
+      },
+      {
+        "core_content_match": true,
+        "event_role": "run_anchor_not_individual_call_attribution",
+        "expected_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "matched_signal_names": [
+          "aggregate_evidence_checks_clean",
+          "aggregate_incorrect_fields_present",
+          "aggregate_unnecessary_abstentions_present",
+          "synthetic_enrichment_evaluation"
+        ],
+        "missing_signal_names": [],
+        "phase": "development_validation",
+        "scope": "variant_aggregate",
+        "split": "validation",
+        "variant": "candidate"
+      }
+    ],
+    "checked_at": "2026-10-11T23:30:48.899166+00:00",
+    "core_content_matches": true,
+    "count_matches": true,
+    "custom_signals": [
+      {
+        "discovered": true,
+        "expected_name": "aggregate_evidence_checks_clean",
+        "name": "Aggregate evidence checks clean",
+        "type": "instrumented"
+      },
+      {
+        "discovered": true,
+        "expected_name": "aggregate_evidence_issues_present",
+        "name": "Aggregate evidence issues present",
+        "type": "instrumented"
+      },
+      {
+        "discovered": true,
+        "expected_name": "aggregate_incorrect_fields_present",
+        "name": "Aggregate incorrect fields present",
+        "type": "instrumented"
+      },
+      {
+        "discovered": true,
+        "expected_name": "aggregate_unnecessary_abstentions_present",
+        "name": "Aggregate unnecessary abstentions present",
+        "type": "instrumented"
+      },
+      {
+        "discovered": true,
+        "expected_name": "aggregate_unsupported_assertions_present",
+        "name": "Aggregate unsupported assertions present",
+        "type": "instrumented"
+      },
+      {
+        "discovered": true,
+        "expected_name": "synthetic_enrichment_evaluation",
+        "name": "Synthetic enrichment evaluation",
+        "type": "instrumented"
+      }
+    ],
+    "events_retransmitted": 0,
+    "events_sha256": "e07107c8d197252393b421c1be7d1d7afea7ed76973cc8f3228545b4917b36ad",
+    "expected_anchors": 6,
+    "expected_events": 31,
+    "fresh_core_events_verified": 6,
+    "historical_costs_backfilled": false,
+    "kind": "raindrop_visibility",
+    "local_usage_only": true,
+    "missing_nested_metadata": {
+      "model_usage": 6,
+      "request_configuration": 6
+    },
+    "model_calls_added": 0,
+    "monitoring_manifest_sha256": "c401c9ef006dc7a2b66787f5e701a71aa3556894b982cd95f8d90bcea2a085e1",
+    "monitoring_signals_expected": 22,
+    "monitoring_status": "sent",
+    "nested_metadata_verified": false,
+    "network_gets_added": 8,
+    "network_posts_added": 0,
+    "original_provenance_verified": true,
+    "prior_core_events_verified": 31,
+    "signal_list_has_more": false,
+    "signal_properties_verified": false,
+    "status": "verified",
+    "total": 31
+  }
+}

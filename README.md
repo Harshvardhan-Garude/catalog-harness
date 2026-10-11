@@ -325,9 +325,57 @@ Optional investigation tools are the
 Slack alert connection. These are not prerequisites for the demo or permission
 to rerun the completed evaluations.
 
+### Raindrop recording view and fresh visibility check
+
+For the video, open the configured project, choose **Today** or **Last 7 days**,
+and use **Events** with user `catalog-harness-demo` and event
+`semantic_enrichment_import`. **Signals → Instrumented** now contains the
+original evaluation signal and five distinct aggregate monitoring flags:
+
+| Instrumented flag | Verified run occurrences |
+| --- | ---: |
+| Unsupported assertions present | 5 |
+| Unnecessary abstentions present | 5 |
+| Evidence issues present | 2 |
+| Incorrect fields present | 6 |
+| Evidence checks clean | 4 |
+
+These **22 additional historical flags** were sent once and their names were
+read back on all six correct run anchors, alongside the original six evaluation
+links. They describe entire saved evaluation runs, not individual failing model
+calls. A clean mechanical evidence check does not establish semantic correctness;
+positive and negative flags can coexist. The event count remains **31**. No model
+calls, event retransmissions, experiment reruns, or changes to frozen results
+were added. Original import payloads and delivery records remain unchanged.
+
+Run a fresh, read-only check of the event count, signal definitions, and six
+anchor events:
+
+```bash
+.venv/bin/python -m enrichment.raindrop_visibility check --receipt
+```
+
+This performs eight bounded GETs with no retries. It distinguishes six freshly
+checked event cores from the original 31-event proof; it does not reuse the
+cached verification as evidence of current availability. Its receipt is ignored
+under `artifacts/raindrop-visibility/`. The separate signals-only monitoring
+outbox reserves delivery before transmission, skips sent payloads, and fences
+uncertain completion. Inspect it offline with
+`.venv/bin/python -m enrichment.raindrop_monitoring status`; do not reset it.
+
+See [the recording guide](docs/raindrop-demo.md) and
+[fresh verification evidence](docs/raindrop-monitoring-verification.json).
+The import populates Events and Instrumented Signals. It has not created native
+Raindrop Experiments or a custom dashboard. Dashboard authoring requires a
+signed-in browser or OAuth MCP connection, which is unavailable in this session.
+The [Costs HTTP path](https://www.raindrop.ai/docs/platform/cost-tracking/)
+requires linked usage traces for new model calls; historical calls are not
+backfilled. Costs/Traces remain unverified, and token totals continue to come
+from completed local ledgers. No keys are exposed to the demo browser.
+
 ## Current verification
 
-The complete **185-test** suite passes in the existing Python 3.8 environment.
+The complete **201-test** suite passes in the existing Python 3.8 environment.
 Headless Chrome verifies saved metrics, product search/filter/selection, original
 fields and both policy outputs, exact instructions, profile switching and staged
 preview, safe text rendering, and desktop/mobile layouts. A live Atlas check
@@ -341,7 +389,9 @@ request/cache hashes, frozen contexts, usage, and the preserved original result.
 Credential scans found no secrets in publishable files; `.env` and `.venv/`
 remain ignored. Public-host Atlas access and interactions are verified.
 Raindrop readback verifies all 31 historical event cores and all six evaluation
-signal links; nested usage and signal aggregate properties have the limits above.
+signal links. Fresh readback also verifies the 31-event count and 22 additional
+aggregate monitoring links on six unchanged anchors; nested usage and signal
+aggregate properties have the limits above.
 
 ## Verification status — October 11, 2026
 

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Catalog Harness · Product evidence</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to results</a>
+  <aside class="rail" aria-label="Main navigation">
+    <a class="brand" href="#overview" aria-label="Catalog Harness home"><span class="brand-mark">C<span>H</span></span><span>CATALOG<br>HARNESS</span></a>
+    <div class="rail-label">WORKSPACE</div>
+    <nav>
+      <a class="nav-item active" href="#overview"><span aria-hidden="true">◫</span> Experiment</a>
+      <a class="nav-item" href="#inspector"><span aria-hidden="true">⌕</span> Product evidence</a>
+      <a class="nav-item" href="#placement"><span aria-hidden="true">↳</span> Store placement</a>
+      <a class="nav-item" href="#policy"><span aria-hidden="true">≡</span> Harness policy</a>
+    </nav>
+    <div class="rail-foot"><span class="small-dot"></span> SAVED RESULTS<br><span>Frozen results. Clear provenance.</span></div>
+  </aside>
+  <main id="main">
+    <header class="topbar"><span class="breadcrumb">Workspace <span>/</span> Synthetic catalog experiment</span><button id="refresh" class="button quiet" type="button">↻ Refresh saved data</button></header>
+    <section id="overview" class="overview">
+      <div class="eyebrow">SEMANTIC ENRICHMENT <span class="version">semantic-v1</span></div>
+      <div class="heading-row"><div><h1>Evidence before placement.</h1><p class="lead">Inspect the listing, compare the decision, then place the product.</p></div><span class="saved-pill"><span class="small-dot"></span> Saved results · no inference</span></div>
+      <div id="source-banner" class="source-banner loading" role="status"><span id="source-icon" aria-hidden="true">◌</span><div><strong id="source-label">Loading saved experiment…</strong><p id="source-notice">Reading existing results; this page does not call a model.</p></div><span id="experiment-state" class="source-state">CONNECTING</span></div>
+      <div class="section-heading"><h2>One bounded experiment</h2><span class="muted">Synthetic fixtures · baseline → candidate</span></div>
+      <div class="metrics">
+        <article class="metric primary"><span class="metric-label">Validation field decisions</span><div id="metric-validation" class="metric-value">—</div><p id="metric-validation-note">Separate data decides acceptance.</p></article>
+        <article class="metric"><span class="metric-label">Unsupported assertions</span><div id="metric-unsupported" class="metric-value">—</div><p>Validation · semantics or invalid evidence</p></article>
+        <article class="metric"><span class="metric-label">Development field decisions</span><div id="metric-development" class="metric-value">—</div><p>Diagnosis split · no selection on development</p></article>
+        <article class="metric"><span class="metric-label">Unnecessary abstentions</span><div id="metric-abstentions" class="metric-value">—</div><p>Validation · lower is better</p></article>
+      </div>
+      <div class="experiment-meta"><div id="decision" class="decision">Waiting for the saved comparison.</div><div id="usage" class="usage">Model usage —</div></div>
+      <div id="final-summary" class="final-summary" hidden></div>
+    </section>
+
+    <section id="inspector" class="section inspector-section">
+      <div class="section-heading"><div><span class="eyebrow">01 / PRODUCT EVIDENCE</span><h2>Look inside a decision.</h2></div><span id="product-count" class="count-pill">0 listings</span></div>
+      <div class="inspector">
+        <div class="product-browser">
+          <label class="visually-hidden" for="search">Search product listings</label><input id="search" type="search" placeholder="Search name or source ID…" autocomplete="off">
+          <div class="filters"><label class="visually-hidden" for="split-filter">Fixture split</label><select id="split-filter"><option value="all">Development + validation</option><option value="validation">Validation · 12 products</option><option value="development">Development · 24 products</option></select></div>
+          <label class="checkbox-label"><input id="changed-only" type="checkbox"> Changed decisions only</label>
+          <div id="product-list" class="product-list" aria-label="Product listings"></div>
+          <div class="browser-footer"><button id="select-visible" class="text-button" type="button">Select visible for placement</button><span id="selected-count">0 selected</span></div>
+        </div>
+        <div id="product-detail" class="product-detail"><div class="empty-state"><span class="empty-icon">◫</span><h3>Choose a listing</h3><p>Original supplier fields and both saved enrichment decisions appear here.</p></div></div>
+      </div>
+    </section>
+
+    <section id="placement" class="section placement-section">
+      <div class="section-heading"><div><span class="eyebrow">02 / STORE PLACEMENT <span class="new-pill">NEW DEMO FEATURE</span></span><h2>Same evidence. Your store’s taxonomy.</h2></div><span class="count-pill">Deterministic rules · 0 model calls</span></div>
+      <p class="section-description">Apply a store profile to the saved candidate decisions. Placement is a separate feature from the measured semantic improvement. Preview first; only ready placements can be accepted.</p>
+      <div class="placement-controls"><div class="store-picker"><label for="store-profile">Store profile</label><select id="store-profile"></select></div><div class="placement-actions"><span id="placement-selection" class="muted">All saved listings</span><button id="preview-button" class="button dark" type="button">Preview placements <span aria-hidden="true">↗</span></button></div></div>
+      <div id="profile-summary" class="profile-summary"></div>
+      <div id="placement-status" class="inline-notice" role="status" hidden></div>
+      <div id="preview-panel" class="preview-panel" hidden></div>
+      <details class="profile-details"><summary>Store profile rules & local editing</summary><p>Edit the local profile JSON files in <code>demo_app/profiles/</code>, then refresh the saved data. Rules map a semantic category and primary use to an allowed store path; unresolved products need review.</p><pre id="profile-json"></pre></details>
+    </section>
+
+    <section id="policy" class="section policy-section">
+      <div class="section-heading"><div><span class="eyebrow">03 / THE HARNESS REVISION</span><h2>What actually changed.</h2></div><span id="policy-decision" class="count-pill">One candidate · validation gate</span></div>
+      <div id="policy-comparison" class="policy-comparison"></div>
+      <p class="method-note">Same enrichment model, taxonomy, inputs, and scoring. Exact source excerpts establish citation provenance; semantic correctness is scored independently. The candidate’s validation tradeoffs stay visible.</p>
+    </section>
+    <footer><span class="footer-brand">CATALOG HARNESS</span><span>Source → normalize → enrich with evidence → review → place</span><span>No live model requests from this demo.</span></footer>
+  </main>
+  <div id="live-region" class="visually-hidden" role="status" aria-live="polite"></div>
+</body>
+</html>

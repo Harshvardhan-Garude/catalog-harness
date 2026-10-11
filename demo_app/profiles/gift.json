@@ -1,0 +1,19 @@
+{
+  "store_id": "gift",
+  "name": "Thoughtful Gifts",
+  "version": "placement-v1",
+  "description": "Place the same supported facts into a curated gift-store taxonomy.",
+  "allowed_paths": ["Gifts / Everyday Rituals / Drinkware", "Gifts / Creative Hobbies / Measuring", "Gifts / Work & Study / Desk Accessories", "Gifts / Work & Travel / Cup Holders", "Gifts / Home Accents / Decorative Vessels", "Gifts / Home Accents / Lighting", "Gifts / Green Thumbs / Growing Kits", "Gifts / Work & Study / Cable Tidies", "Gifts / Home Organization / Storage"],
+  "rules": [
+    {"rule_id": "gift-cups", "category": "drinking_cup", "primary_use": "drink_beverages", "path": "Gifts / Everyday Rituals / Drinkware"},
+    {"rule_id": "gift-measuring", "category": "measuring_cup", "primary_use": "measure_materials", "path": "Gifts / Creative Hobbies / Measuring"},
+    {"rule_id": "gift-desk", "category": "desk_organizer", "primary_use": "organize_desk_items", "path": "Gifts / Work & Study / Desk Accessories"},
+    {"rule_id": "gift-holders", "category": "cup_holder", "primary_use": "hold_drinking_cup", "path": "Gifts / Work & Travel / Cup Holders"},
+    {"rule_id": "gift-decor", "category": "decorative_vessel", "primary_use": "display_decoration", "path": "Gifts / Home Accents / Decorative Vessels"},
+    {"rule_id": "gift-lighting", "category": "lighting", "primary_use": "provide_light", "path": "Gifts / Home Accents / Lighting"},
+    {"rule_id": "gift-garden", "category": "gardening_kit", "primary_use": "gardening", "path": "Gifts / Green Thumbs / Growing Kits"},
+    {"rule_id": "gift-cables", "category": "cable_accessory", "primary_use": "organize_cables", "path": "Gifts / Work & Study / Cable Tidies"},
+    {"rule_id": "gift-storage", "category": "storage_container", "primary_use": "store_items", "path": "Gifts / Home Organization / Storage"}
+  ],
+  "unmapped_behavior": "needs_review"
+}

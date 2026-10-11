@@ -1,0 +1,18 @@
+# Python host fallback: Modelence Cloud explicitly does not support Python.
+# No database provisioning. Enter the EXISTING event Atlas settings in Render.
+services:
+  - type: web
+    name: catalog-harness
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m demo_app
+    healthCheckPath: /healthz
+    envVars:
+      - key: CATALOG_HOSTED
+        value: '1'
+      - key: CATALOG_MONGODB_URI
+        sync: false
+      - key: CATALOG_MONGODB_DATABASE
+        sync: false

@@ -1,0 +1,240 @@
+{
+  "active_stage": "completed",
+  "atlas_persistence_verified": true,
+  "both_policies_evaluated": true,
+  "comparison": {
+    "correct_field_decisions_delta": 1,
+    "field_accuracy_delta": 0.01388888888888895,
+    "kind": "final_holdout_comparison_only",
+    "limits": "One synthetic final comparison; no repeated trials or statistical generalization claim.",
+    "outcome": "gain",
+    "policy_selection_performed": false,
+    "retuning_permitted": false,
+    "unnecessary_abstentions_delta": 0,
+    "unsupported_assertions_delta": -1
+  },
+  "final_holdout_evaluated": true,
+  "finished_at": "2026-10-11T21:18:00.862824+00:00",
+  "freeze_sha256": "5474b4421fcf6f0ba083069329292c50d486b69fe24034d30642172719a22dd2",
+  "kind": "synthetic_semantic_final_evaluation",
+  "phase_id": "43aee94aa4e748c187fd1104069f3e31",
+  "policy_fingerprints": {
+    "baseline": "ca50d89f09e6d2291ecd4524bb70c20181ab933f9c97ba6e85f3ebe7e5faf49c",
+    "candidate": "f0cf7c06ae4b7b3a4f787a26ef3a190e543909cb08f213d7f904b96394e07284"
+  },
+  "prior_experiment_id": "a33a4aedd2ba4ace89cb8a6ec023d178",
+  "raw_unchanged": true,
+  "retuning_permitted": false,
+  "runs": {
+    "baseline": {
+      "atlas_persistence_verified": true,
+      "average_tokens_per_product": {
+        "input_tokens": 400.625,
+        "output_tokens": 103.25,
+        "total_tokens": 503.875
+      },
+      "development_failures": [],
+      "evaluation_identity_sha256": "a7fc511a63cb9581041ff84aba33ebd1a8ba8729d1167100623967e0cb229d0a",
+      "evaluation_labels_sha256": "3aa9de8ffc8f47aba9bfef937c342035bbab11c5dde4233f8285ad511387239b",
+      "field_accuracy": 0.9444444444444444,
+      "fixture_version": "semantic-v1",
+      "inference_products": 24,
+      "kind": "synthetic_semantic_final_evaluation",
+      "model_calls": 6,
+      "objective": {
+        "correct_field_decisions": "strictly_greater",
+        "duplicate_outputs": 0,
+        "identical_fixture_identities_and_denominators": true,
+        "missing_outputs": 0,
+        "selection_split": "validation",
+        "unexpected_outputs": 0,
+        "unsupported_assertions": "no_increase",
+        "version": "semantic-v1-validation-objective-1"
+      },
+      "objective_version": "semantic-v1-validation-objective-1",
+      "overall": {
+        "correct_field_decisions": 68,
+        "duplicate_outputs": 0,
+        "evidence_issue_count": 6,
+        "incorrect_field_decisions": 4,
+        "missing_outputs": 0,
+        "necessary_abstentions": 29,
+        "total_expected": 24,
+        "total_field_decisions": 72,
+        "unexpected_outputs": 0,
+        "unnecessary_abstentions": 2,
+        "unsupported_assertions": 2
+      },
+      "policy_fingerprint": "ca50d89f09e6d2291ecd4524bb70c20181ab933f9c97ba6e85f3ebe7e5faf49c",
+      "policy_version": "semantic-policy-v1-baseline",
+      "raw_unchanged": true,
+      "representative_failures": [],
+      "run_id": "4d6dc1c241104d3680eb8091a1a541a2",
+      "scoring_version": "semantic-v1-scoring-1",
+      "split": "final",
+      "token_usage": {
+        "input_tokens": 9615,
+        "output_tokens": 2478,
+        "total_tokens": 12093
+      }
+    },
+    "candidate": {
+      "atlas_persistence_verified": true,
+      "average_tokens_per_product": {
+        "input_tokens": 448.125,
+        "output_tokens": 96.95833333333333,
+        "total_tokens": 545.0833333333334
+      },
+      "development_failures": [],
+      "evaluation_identity_sha256": "a7fc511a63cb9581041ff84aba33ebd1a8ba8729d1167100623967e0cb229d0a",
+      "evaluation_labels_sha256": "3aa9de8ffc8f47aba9bfef937c342035bbab11c5dde4233f8285ad511387239b",
+      "field_accuracy": 0.9583333333333334,
+      "fixture_version": "semantic-v1",
+      "inference_products": 24,
+      "kind": "synthetic_semantic_final_evaluation",
+      "model_calls": 6,
+      "objective": {
+        "correct_field_decisions": "strictly_greater",
+        "duplicate_outputs": 0,
+        "identical_fixture_identities_and_denominators": true,
+        "missing_outputs": 0,
+        "selection_split": "validation",
+        "unexpected_outputs": 0,
+        "unsupported_assertions": "no_increase",
+        "version": "semantic-v1-validation-objective-1"
+      },
+      "objective_version": "semantic-v1-validation-objective-1",
+      "overall": {
+        "correct_field_decisions": 69,
+        "duplicate_outputs": 0,
+        "evidence_issue_count": 0,
+        "incorrect_field_decisions": 3,
+        "missing_outputs": 0,
+        "necessary_abstentions": 30,
+        "total_expected": 24,
+        "total_field_decisions": 72,
+        "unexpected_outputs": 0,
+        "unnecessary_abstentions": 2,
+        "unsupported_assertions": 1
+      },
+      "policy_fingerprint": "f0cf7c06ae4b7b3a4f787a26ef3a190e543909cb08f213d7f904b96394e07284",
+      "policy_version": "semantic-policy-v1-candidate",
+      "raw_unchanged": true,
+      "representative_failures": [],
+      "run_id": "a2be3a06a5954a04b95b1dd153c100d1",
+      "scoring_version": "semantic-v1-scoring-1",
+      "split": "final",
+      "token_usage": {
+        "input_tokens": 10755,
+        "output_tokens": 2327,
+        "total_tokens": 13082
+      }
+    }
+  },
+  "source": {
+    "dataset_id": "semantic-v1-final",
+    "normalization_persistence_verified": true,
+    "normalization_run_id": "3020cfdbe0ee46288291876ccb9a3099",
+    "raw_digest": {
+      "count": 24,
+      "sha256": "0d823a3a67a6e1f7d1f1ddb2b729e578f3ad24d5a7e1edff58dcea41f1849f36"
+    },
+    "seed_repeatable": true
+  },
+  "started_at": "2026-10-11T21:16:39.856741+00:00",
+  "status": "completed",
+  "usage": {
+    "by_stage": {
+      "baseline_final_01": {
+        "calls": 1,
+        "input_tokens": 1597,
+        "output_tokens": 411,
+        "total_tokens": 2008
+      },
+      "baseline_final_02": {
+        "calls": 1,
+        "input_tokens": 1616,
+        "output_tokens": 378,
+        "total_tokens": 1994
+      },
+      "baseline_final_03": {
+        "calls": 1,
+        "input_tokens": 1598,
+        "output_tokens": 448,
+        "total_tokens": 2046
+      },
+      "baseline_final_04": {
+        "calls": 1,
+        "input_tokens": 1595,
+        "output_tokens": 396,
+        "total_tokens": 1991
+      },
+      "baseline_final_05": {
+        "calls": 1,
+        "input_tokens": 1613,
+        "output_tokens": 442,
+        "total_tokens": 2055
+      },
+      "baseline_final_06": {
+        "calls": 1,
+        "input_tokens": 1596,
+        "output_tokens": 403,
+        "total_tokens": 1999
+      },
+      "candidate_final_01": {
+        "calls": 1,
+        "input_tokens": 1787,
+        "output_tokens": 441,
+        "total_tokens": 2228
+      },
+      "candidate_final_02": {
+        "calls": 1,
+        "input_tokens": 1806,
+        "output_tokens": 374,
+        "total_tokens": 2180
+      },
+      "candidate_final_03": {
+        "calls": 1,
+        "input_tokens": 1788,
+        "output_tokens": 358,
+        "total_tokens": 2146
+      },
+      "candidate_final_04": {
+        "calls": 1,
+        "input_tokens": 1785,
+        "output_tokens": 372,
+        "total_tokens": 2157
+      },
+      "candidate_final_05": {
+        "calls": 1,
+        "input_tokens": 1803,
+        "output_tokens": 390,
+        "total_tokens": 2193
+      },
+      "candidate_final_06": {
+        "calls": 1,
+        "input_tokens": 1786,
+        "output_tokens": 392,
+        "total_tokens": 2178
+      }
+    },
+    "calls": 12,
+    "cumulative_cap_usd": 1.0,
+    "cumulative_upper_bound_usd": 0.0424452,
+    "max_calls": 12,
+    "model": "gpt-4.1-mini-2025-04-14",
+    "phase_actual_usd": 0.015836,
+    "phase_cap_usd": 0.5,
+    "phase_reserved_usd": 0.015836,
+    "prior_recorded_calls": 21,
+    "prior_recorded_upper_bound_usd": 0.0266092,
+    "stopped": false,
+    "tokens": {
+      "input_tokens": 20370,
+      "output_tokens": 4805,
+      "total_tokens": 25175
+    },
+    "unknown_usage_calls": 0
+  },
+  "version": "semantic-v1-final-evaluation-1"
+}

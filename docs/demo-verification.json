@@ -1,0 +1,68 @@
+{
+  "checks": {
+    "all_prior_and_final_raw_snapshots_unchanged": true,
+    "atlas_final_phase_report_matches_local": true,
+    "atlas_prior_experiment_unchanged": true,
+    "baseline_aggregate_evaluation_reproduced": true,
+    "baseline_atlas_all_output_and_original_fields_match": true,
+    "baseline_atlas_evaluation_and_provenance_match": true,
+    "baseline_final_failure_examples_absent": true,
+    "candidate_aggregate_evaluation_reproduced": true,
+    "candidate_atlas_all_output_and_original_fields_match": true,
+    "candidate_atlas_evaluation_and_provenance_match": true,
+    "candidate_final_failure_examples_absent": true,
+    "final_12_completed_calls": true,
+    "final_ledger_usage_matches_report": true,
+    "final_normalization_matches_public_context": true,
+    "final_normalized_copies_persisted": true,
+    "final_not_used_for_policy_selection": true,
+    "final_one_model": true,
+    "final_status_completed": true,
+    "freeze_unchanged": true,
+    "history_preserves_730331f": true,
+    "history_preserves_82021e6": true,
+    "history_preserves_c3ee55a": true,
+    "prior_19_completed_calls": true,
+    "prior_call_records_match_final_budget_snapshot": true,
+    "prior_ledger_usage_matches_original_report": true,
+    "prior_report_matches_c3_commit": true,
+    "prior_report_matches_phase_contract": true,
+    "spending_caps_passed": true,
+    "verification_added_zero_model_calls": true
+  },
+  "counts": {
+    "final_model_calls": 12,
+    "final_normalized_copies": 24,
+    "model_calls_added_by_verification": 0,
+    "prior_model_calls": 19,
+    "runs": {
+      "baseline": {
+        "correct_field_decisions": 68,
+        "expected_records": 24,
+        "field_decisions": 72,
+        "persisted_outputs": 24,
+        "unnecessary_abstentions": 2,
+        "unsupported_assertions": 2
+      },
+      "candidate": {
+        "correct_field_decisions": 69,
+        "expected_records": 24,
+        "field_decisions": 72,
+        "persisted_outputs": 24,
+        "unnecessary_abstentions": 2,
+        "unsupported_assertions": 1
+      }
+    },
+    "verified_raw_datasets": 4
+  },
+  "digests": {
+    "final_call_ledger_sha256": "54ea3fc37c48725e56963b92dadb82355c4cad7525d572e2392cd501e288e349",
+    "final_report_sha256": "1ea475428a1ecdfefa26b1252b8100a682625056f6ef612c9c56e6a280c87e19",
+    "freeze_sha256": "5474b4421fcf6f0ba083069329292c50d486b69fe24034d30642172719a22dd2",
+    "git_reference_commit": "c3ee55abf59581228c54ca96058ee19cdc804589",
+    "prior_call_ledger_sha256": "4cf2d9b40ff1860685f99aabcfdc26de99d35a8991c0d28e492f42a4d780c802",
+    "prior_report_sha256": "78305d0eba80c51304016db9d7f0c48f1b3afd79c521181678fe79c8f086378c"
+  },
+  "status": "PASS",
+  "verified_at_utc": "2026-10-11T21:21:06.858406+00:00"
+}

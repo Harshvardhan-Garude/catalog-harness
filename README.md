@@ -8,7 +8,136 @@ a harness-policy change → retain or reject after independent evaluation.
 Harness policies control agent instructions and review behavior, never the
 evaluator, safety constraints, or model weights. A separate semantic enrichment
 experiment follows deterministic normalization and tests at most one revision.
-Raindrop integration remains future work.
+The demo compares saved results and stages deterministic store placements.
+
+## Open the saved-results demo
+
+From `/home/harsh/Desktop/MongoDB_Hackathon`:
+
+```bash
+.venv/bin/python -m demo_app
+```
+
+Open **http://127.0.0.1:8080**. The server reads the completed experiment from the
+existing Atlas database at startup and caches its verified snapshot. Opening,
+searching, filtering, switching stores, and refreshing never make model requests.
+Choose one of 36 saved development/validation products to compare supplier fields,
+baseline/candidate factual category, primary/secondary uses, citations, review
+reasons, and raw model responses. The exact tested instruction addendum, complete
+instructions, review behavior, and aggregate metrics are visible.
+
+If Atlas is unavailable, the interface explicitly identifies a **local saved-report
+fallback** using the complete ignored `artifacts/enrichment-v1` files. Placement
+acceptance is disabled in fallback mode. A fresh clone without Atlas access and
+those artifacts displays a useful error; it never manufactures example AI results.
+Restart to retry Atlas access. Final products and answer keys are excluded from
+the inspector; final results are aggregate only.
+
+Edit `demo_app/profiles/homeware.json` and `gift.json` to change allowed display
+paths and explicit category/use mapping rules. Preview a selection or all saved
+products, inspect category counts and records needing review, then accept only
+ready rows into `catalog_harness_demo_placements` in the demo Atlas database.
+Unmapped, uncertain, or conflicting facts require review. `store_category` is a
+separate placement value: switching stores changes neither factual category/uses
+nor raw records. Acceptance checks profile/policy freshness and verifies readback.
+There is no external shop integration. **Store placement is a new product feature,
+not part of the already-measured semantic-v1 improvement.**
+
+The measured change is in the **harness, including evidence-handling behavior**.
+The frozen validation result remains 33/36 → 34/36 correct fields, unsupported
+assertions 4 → 0, and unnecessary abstentions 1 → 2. Development correct fields
+stay at 68/72. These are saved real model outputs on synthetic fixtures, separate
+from hand-authored normalization fixture results; they are not freshly generated
+when the interface opens. The preserved experiment at `c3ee55a` is not rerun.
+
+## Locked final holdout — completed once
+
+The untouched 24 final records were evaluated once for each exact frozen policy,
+at four records/request, using `gpt-4.1-mini-2025-04-14`, the existing taxonomy,
+scoring, and evidence processing. No answer keys were sent to the model, no new
+policy was proposed, and no tuning followed the result.
+
+| Final metric | Baseline | Candidate |
+| --- | ---: | ---: |
+| Correct field decisions | 68/72 (94.44%) | 69/72 (95.83%) |
+| Unsupported assertions | 2 | 1 |
+| Unnecessary abstentions | 2 | 2 |
+| Evidence issues | 6 | 0 |
+| Missing / duplicate / unexpected outputs | 0 / 0 / 0 | 0 / 0 / 0 |
+| New model requests | 6 | 6 |
+
+This is one additional correct field decision on a small synthetic holdout. One
+unsupported assertion remains; semantic correctness does not follow from literal
+citation checks alone. The comparison does not establish production generalization
+or statistical significance. Aggregate results and provenance are committed in
+`docs/semantic-v1-final-results.json`. Atlas persisted and re-read both runs,
+original model rows, post-harness outputs, and evaluations; existing and final raw
+snapshots remained unchanged, and seeding was repeatable.
+
+Actual additional usage: **12 calls, 20,370 input + 4,805 output = 25,175 tokens**.
+At uncached [published GPT-4.1 mini prices](https://developers.openai.com/api/docs/models/gpt-4.1-mini)
+($0.40/M input, $1.60/M output), the final phase is **$0.015836**. All 21 recorded
+previous application calls add $0.0266092, giving **$0.0424452 cumulative** at those
+rates. These are usage-based estimates, not an account billing/balance assertion.
+The $0.50 phase and $1 cumulative application ceilings remain enforced. Unknown
+historical usage is conservatively reserved; current recorded calls all have usage.
+
+`enrichment/spending.py` reserves cost durably before transmission using the full
+serialized request (including schema/instructions), a UTF-8 byte upper bound plus
+8,192 framing tokens, and maximum output of 2,048 tokens. It uses uncached prices,
+pins the returned model snapshot, caps this separate final phase at 12 requests,
+and never resets the completed experiment's 20-call ledger. Completed responses
+can repair interrupted persistence without retransmission. An uncertain or failed
+request stops further calls rather than automatically retrying.
+
+Read saved reports without requests:
+
+```bash
+.venv/bin/python -m enrichment.experiment report
+.venv/bin/python -m enrichment.final_evaluation report
+```
+
+Do not regenerate fixtures or candidate policy, rerun the completed experiment,
+or tune against final results. The final runner's completed path is read-only;
+its reserved phase/run IDs and batch cache support interruption recovery, never
+a second final experiment.
+
+## Python hosting and remaining plan
+
+The requested [Modelence skill](https://modelence.com/skill.md) and
+[deployment instructions](https://docs.modelence.com/deploy/setup.md) explicitly
+exclude Python runtimes, including Python behind a Node.js frontend. Per the
+user's choice, preserve Python and prepare a compatible host. No framework rewrite
+or Modelence database provisioning is performed.
+
+`render.yaml` prepares a Python Render web service: `pip install -r requirements.txt`
+then `python -m demo_app`, bound to `0.0.0.0:$PORT`. `.python-version` selects the
+latest Python 3.11 patch on Render; local checks continue in existing Python 3.8.
+See [Render web services](https://render.com/docs/web-services) and
+[Python versions](https://render.com/docs/python-version). Public deployment is
+**not yet verified** and requires the user's Render account/dashboard step.
+
+In the hosting dashboard, set **CATALOG_MONGODB_URI** (secret) and
+**CATALOG_MONGODB_DATABASE** to the existing event Atlas database. Hosted startup
+requires those explicit names and ignores any automatically provisioned
+`MONGODB_URI`; it cannot silently switch databases. Local startup continues using
+the ignored `.env`. No OpenAI key is needed by the saved-results web server.
+`/healthz` reports process health and whether saved data loaded; `/api/state`
+reports a useful error if neither Atlas nor a complete fallback is available.
+Credentials are never served as static files. Store writes are limited to demo
+placements, with same-origin checks and no external shop access.
+
+Atlas reachability from the eventual host is **unverified**. If blocked, inspect
+the host's outbound IP addresses and the event's Atlas networking policy with the
+event owner. Do not weaken TLS, change Atlas settings silently, or replace the
+event database. The lightweight server is intended for the hackathon demo; public
+identity/authorization, multi-instance preview storage, and production hardening
+remain limitations.
+
+Remaining order: **first Python-host deployment → Raindrop HTTP telemetry with
+actual interactions and linked evaluation signals → the 50k database benchmark**.
+Any imports of saved runs must be labelled historical and must not rerun inference.
+Atlas Search and further optimization remain outside this milestone.
 
 ## Verification status — October 11, 2026
 
@@ -29,7 +158,8 @@ Raindrop integration remains future work.
   records unchanged. Its local artifact records one request and 2,005 tokens
   (1,846 input / 159 output). This is a baseline, not evidence of improvement;
   this milestone does not rerun that historical baseline.
-- Final holdout data has not been used in live runs or policy selection.
+- The final holdout was subsequently evaluated once under the locked policies;
+  results are above. It was never used for policy selection or tuning.
 - Foundation `730331f` and milestone `82021e6` are preserved. The user supplied
   successful terminal push output for both commits to
   [Harshvardhan-Garude/catalog-harness](https://github.com/Harshvardhan-Garude/catalog-harness).
@@ -345,7 +475,7 @@ field decision, fewer unsupported assertions, and complete unique outputs. This
 is one field decision, not one additional fully correct product. Development
 accuracy did not improve and validation had one extra unnecessary abstention.
 This single synthetic comparison does not establish production generalization;
-the final 24 records remain unused.
+the later final comparison is recorded above, without additional policy tuning.
 
 The exact candidate is in `docs/semantic-v1-policy.json`. It adds an instruction
 requiring cross-source conflict checks and abstention despite a stronger-looking
@@ -390,9 +520,8 @@ inspect the existing report without network or model calls:
 .venv/bin/python -m enrichment.experiment report
 ```
 
-The remaining submission work is to inspect the saved example/validation result,
-push the follow-up commit, and prepare the hackathon explanation/demo. No final
-holdout evaluation or further optimization is part of this milestone.
+This historical semantic-v1 result is preserved. The later demo, separate final
+evaluation, and hosting work are documented above; there is no further optimization.
 
 ## Git and publishing
 

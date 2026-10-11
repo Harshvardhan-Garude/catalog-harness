@@ -1,0 +1,19 @@
+{
+  "store_id": "homeware",
+  "name": "Homeware & Living",
+  "version": "placement-v1",
+  "description": "Organize existing supported product facts for a homeware catalog.",
+  "allowed_paths": ["Home / Drinkware / Cups", "Home / Kitchen / Measuring Tools", "Home / Office / Desk Organizers", "Home / Drinkware / Cup Holders", "Home / Decor / Decorative Vessels", "Home / Lighting", "Home / Garden / Growing Kits", "Home / Office / Cable Organization", "Home / Storage"],
+  "rules": [
+    {"rule_id": "home-cups", "category": "drinking_cup", "primary_use": "drink_beverages", "path": "Home / Drinkware / Cups"},
+    {"rule_id": "home-measuring", "category": "measuring_cup", "primary_use": "measure_materials", "path": "Home / Kitchen / Measuring Tools"},
+    {"rule_id": "home-desk", "category": "desk_organizer", "primary_use": "organize_desk_items", "path": "Home / Office / Desk Organizers"},
+    {"rule_id": "home-holders", "category": "cup_holder", "primary_use": "hold_drinking_cup", "path": "Home / Drinkware / Cup Holders"},
+    {"rule_id": "home-decor", "category": "decorative_vessel", "primary_use": "display_decoration", "path": "Home / Decor / Decorative Vessels"},
+    {"rule_id": "home-lighting", "category": "lighting", "primary_use": "provide_light", "path": "Home / Lighting"},
+    {"rule_id": "home-garden", "category": "gardening_kit", "primary_use": "gardening", "path": "Home / Garden / Growing Kits"},
+    {"rule_id": "home-cables", "category": "cable_accessory", "primary_use": "organize_cables", "path": "Home / Office / Cable Organization"},
+    {"rule_id": "home-storage", "category": "storage_container", "primary_use": "store_items", "path": "Home / Storage"}
+  ],
+  "unmapped_behavior": "needs_review"
+}

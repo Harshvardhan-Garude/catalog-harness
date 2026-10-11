@@ -1,0 +1,38 @@
+{
+  "actual_model_input": null,
+  "actual_model_output": null,
+  "label": "synthetic-fixture experiment; no AI predictions produced",
+  "next_action": ".venv/bin/python -m enrichment.experiment run",
+  "report": {
+    "decision": {
+      "accepted": false,
+      "reason": "experiment_incomplete"
+    },
+    "error": {
+      "category": "atlas",
+      "code": "operation_failed"
+    },
+    "experiment_id": "1ea3a967416d4cc1b447013bf573fbee",
+    "final_holdout_evaluated": false,
+    "finished_at": "2026-10-11T20:43:36.291954+00:00",
+    "fixture_version": "semantic-v1",
+    "freeze_sha256": "5474b4421fcf6f0ba083069329292c50d486b69fe24034d30642172719a22dd2",
+    "kind": "synthetic_semantic_experiment",
+    "policies": {
+      "baseline": {
+        "instruction_addendum": "",
+        "review_behavior": "report_only",
+        "version": "semantic-policy-v1-baseline"
+      }
+    },
+    "runs": {},
+    "started_at": "2026-10-11T20:43:05.992398+00:00",
+    "status": "blocked",
+    "usage": {
+      "calls": 0,
+      "tokens": null,
+      "unknown_usage_calls": 0
+    }
+  },
+  "verification_source": "managed-runtime bounded attempt"
+}

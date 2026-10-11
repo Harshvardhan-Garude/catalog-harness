@@ -1,0 +1,37 @@
+{
+  "version": "semantic-v1",
+  "categories": {
+    "drinking_cup": "A vessel explicitly intended for drinking beverages.",
+    "measuring_cup": "A vessel or scoop explicitly intended to measure a quantity of material.",
+    "desk_organizer": "An item explicitly intended to arrange desktop supplies.",
+    "cup_holder": "An accessory that supports a separate drinking cup; not itself a drinking vessel.",
+    "decorative_vessel": "A vessel explicitly intended for decorative display.",
+    "lighting": "An item explicitly intended to provide illumination.",
+    "gardening_kit": "A kit explicitly intended for gardening or growing plants.",
+    "cable_accessory": "An accessory for cables; its intended use still requires specific evidence.",
+    "storage_container": "A container explicitly intended to store objects or materials.",
+    "unknown": "The listing does not establish a supported category, or explicit claims conflict."
+  },
+  "uses": {
+    "drink_beverages": "Drink beverages from the product.",
+    "measure_materials": "Measure a quantity of material using the product.",
+    "organize_desk_items": "Arrange desktop stationery or supplies.",
+    "hold_drinking_cup": "Hold a separate drinking cup.",
+    "display_decoration": "Display the product or decorative contents as decoration.",
+    "provide_light": "Provide illumination.",
+    "gardening": "Use the supplied kit for growing or tending plants.",
+    "organize_cables": "Arrange, route, or retain cables.",
+    "store_items": "Store objects or materials.",
+    "unknown": "No supported primary use can be established, or explicit claims conflict."
+  },
+  "rules": [
+    "Use only exact labels from this versioned taxonomy.",
+    "Use unknown for an unsupported category or primary use and an empty list for unsupported secondary uses.",
+    "Each asserted category and use requires an exact excerpt from name, description, or supplier_notes.",
+    "An excerpt match verifies provenance only; it does not establish semantic correctness.",
+    "Distinguish vessels from accessories that hold separate vessels.",
+    "Use only explicit intended uses; do not infer arbitrary repurposing or food, heat, or medical suitability.",
+    "Abstain on mutually exclusive conflicting claims unless the listing explicitly establishes genuine multiple functions.",
+    "Do not duplicate the primary use in secondary_uses; include distinct explicit secondary functions."
+  ]
+}

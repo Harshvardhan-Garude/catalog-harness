@@ -1,0 +1,50 @@
+{
+  "baseline_policy": {
+    "instruction_addendum": "",
+    "review_behavior": "report_only",
+    "version": "semantic-policy-v1-baseline"
+  },
+  "final_holdout_evaluated": false,
+  "fixture_version": "semantic-v1",
+  "model": "gpt-4.1-mini",
+  "objective": {
+    "correct_field_decisions": "strictly_greater",
+    "duplicate_outputs": 0,
+    "identical_fixture_identities_and_denominators": true,
+    "missing_outputs": 0,
+    "selection_split": "validation",
+    "unexpected_outputs": 0,
+    "unsupported_assertions": "no_increase",
+    "version": "semantic-v1-validation-objective-1"
+  },
+  "objective_version": "semantic-v1-validation-objective-1",
+  "resource_caps": {
+    "automatic_retries": 0,
+    "batch_size": 4,
+    "enrichment_max_output_tokens": 2048,
+    "max_live_calls": 20,
+    "planned_live_calls": 19,
+    "proposal_max_output_tokens": 1024,
+    "request_timeout_seconds": 30
+  },
+  "scoring_version": "semantic-v1-scoring-1",
+  "sha256": {
+    "enrichment/evidence.py": "4b3c40fef0b26244a3cbdacb56db35a414cd662ed0ae524f058aaf69ea28d0a0",
+    "enrichment/provider.py": "ab054a78f7589a6a49b7bdd83835e66098e9d517968c79c502810320bde89da3",
+    "enrichment/taxonomy.json": "ef19a8873a26f0671ad2d3af3e117f9a2e16810e63768282aaa7d0c387463fcc",
+    "enrichment_eval/fixtures.py": "774a8d3b679171ea71f697bd4aba49218f3daf240ded60683adcf74a35708095",
+    "enrichment_eval/scoring.py": "665e42c9459e1d322ea412aa19b9983c642344ca9a290ee9e3c14fc2fe90008a",
+    "fixtures/agent_visible/development.jsonl": "8d35126ea4a22e47aeaf539290c03ebdf2d99e73eb4fa7a26f1f6fe79b891324",
+    "fixtures/agent_visible/final.jsonl": "bc63ef353c594a625c29cbb3d1af54fc2cb4c2211d010cb344ac9289073e025f",
+    "fixtures/agent_visible/validation.jsonl": "69dc2d44397b78d220ec637991bb79b9e489771e92d5f62210e35388a45360ea",
+    "fixtures/evaluator_only/development.jsonl": "0ce373328edba69d2cc4ecde1dd6b8ea72a630d75ee23815eb51b1b79e22303e",
+    "fixtures/evaluator_only/final.jsonl": "e6c5f8ab4ac14a08c5e0946c1bb77a0d4ef708c1035e678501a711e5d1e28cd4",
+    "fixtures/evaluator_only/validation.jsonl": "df1c5699def5d6b96a6a71ca57516af6252f60c768e0cb105103f27a507a5560"
+  },
+  "split_counts": {
+    "development": 24,
+    "final": 24,
+    "validation": 12
+  },
+  "version": "semantic-v1-freeze-1"
+}

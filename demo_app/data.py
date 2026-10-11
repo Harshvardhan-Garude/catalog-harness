@@ -157,7 +157,7 @@ def _final_aggregate(root, store=None):
 
 
 class DemoRepository:
-    def __init__(self, root=ROOT, prefer_atlas=True, connector=None):
+    def __init__(self, root=ROOT, prefer_atlas=True, connector=None, on_atlas_error=None):
         self.root = Path(root)
         self.client = None
         self.store = None
@@ -178,7 +178,12 @@ class DemoRepository:
                     logging.disable(previous_disable)
                 self.source = {"kind": "atlas", "label": "Atlas saved experiment", "notice":
                     "Saved OpenAI enrichment results read from Atlas. Browsing makes no model calls."}
-            except Exception:
+            except Exception as error:
+                if on_atlas_error is not None:
+                    try:
+                        on_atlas_error(error)
+                    except Exception:
+                        pass
                 self.close()
                 report, products = self._local()
                 self.source = {"kind": "local_fallback", "label": "Local saved results — Atlas unavailable", "notice":

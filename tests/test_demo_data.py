@@ -182,6 +182,25 @@ class DemoDataTests(unittest.TestCase):
             self.assertIn("Atlas unavailable", repo.state()["source"]["label"])
             client.close.assert_called_once()
 
+    def test_atlas_failure_callback_receives_original_error_without_extra_requests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            saved_data(directory)
+            original = TimeoutError("private-connection-message")
+            connector = MagicMock(side_effect=original)
+            callback = MagicMock()
+            repo = DemoRepository(directory, connector=connector, on_atlas_error=callback)
+            self.assertEqual(repo.state()["source"]["kind"], "local_fallback")
+            callback.assert_called_once_with(original)
+            connector.assert_called_once()
+            callback.side_effect = RuntimeError("private-callback-message")
+            connector.reset_mock()
+            callback.reset_mock()
+            repo = DemoRepository(directory, connector=connector, on_atlas_error=callback)
+            self.assertEqual(repo.state()["source"]["kind"], "local_fallback")
+            callback.assert_called_once_with(original)
+            connector.assert_called_once()
+            self.assertNotIn("private-", json.dumps(repo.state()))
+
     def test_mutated_local_raw_is_rejected_and_missing_data_error_is_useful(self):
         with tempfile.TemporaryDirectory() as directory:
             saved_data(directory)

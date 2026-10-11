@@ -4,11 +4,16 @@ import argparse
 import json
 import os
 import threading
+import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from dotenv import dotenv_values
+from pymongo.errors import PyMongoError
+
 from catalog_harness.storage import ROOT, connect
+from enrichment.atlas_diagnostics import sanitized_error
 from .data import DemoRepository
 
 STATIC = Path(__file__).with_name("static")
@@ -20,6 +25,18 @@ FILES["/static/style.css"] = FILES["/style.css"]
 FILES["/static/app.js"] = FILES["/app.js"]
 
 
+def missing_connection_variables():
+    hosted = bool(os.environ.get("PORT")) or os.environ.get("CATALOG_HOSTED") == "1"
+    names = ("CATALOG_MONGODB_URI", "CATALOG_MONGODB_DATABASE") if hosted else ("MONGODB_URI", "MONGODB_DATABASE")
+    values = {} if hosted else dotenv_values(ROOT / ".env")
+    missing = []
+    for name in names:
+        value = (os.environ.get(name, values.get(name)) or "").strip()
+        if not value or value.startswith("YOUR_"):
+            missing.append(name)
+    return missing
+
+
 def demo_connection():
     """Hosted environments must explicitly select the existing event database.
 
@@ -28,9 +45,8 @@ def demo_connection():
     """
     hosted = bool(os.environ.get("PORT")) or os.environ.get("CATALOG_HOSTED") == "1"
     if hosted:
-        names = ("CATALOG_MONGODB_URI", "CATALOG_MONGODB_DATABASE")
-        if any(not os.environ.get(name, "").strip() for name in names):
-            raise ValueError("Hosted Atlas configuration missing: CATALOG_MONGODB_URI, CATALOG_MONGODB_DATABASE")
+        if missing_connection_variables():
+            raise ValueError("Hosted Atlas configuration is missing")
         os.environ["MONGODB_URI"] = os.environ["CATALOG_MONGODB_URI"]
         os.environ["MONGODB_DATABASE"] = os.environ["CATALOG_MONGODB_DATABASE"]
     return connect()
@@ -43,17 +59,36 @@ class DemoServer(ThreadingHTTPServer):
     def __init__(self, address, repository=None, repository_factory=None):
         self.repository = repository
         self.repository_error = None
+        self.startup_error = None
         self.repository_lock = threading.Lock()
         if repository is None:
             try:
                 self.repository = (repository_factory or
-                                   (lambda: DemoRepository(connector=demo_connection)))()
+                                   (lambda: DemoRepository(connector=demo_connection,
+                                                           on_atlas_error=self._record_startup_error)))()
             except Exception:
+                if self.startup_error is None:
+                    self._record_startup_error(ValueError())
                 self.repository_error = ("Saved results unavailable. Check Atlas connectivity and configuration, "
                                          "or restore the complete local artifacts/enrichment-v1 saved report. "
                                          "Hosted startup requires CATALOG_MONGODB_URI and CATALOG_MONGODB_DATABASE "
                                          "for the existing event database.")
+                self.repository_error += " Startup diagnostic: {}/{}.".format(
+                    self.startup_error["category"], self.startup_error["code"])
+                if self.startup_error.get("missing"):
+                    self.repository_error += " Missing: " + ", ".join(self.startup_error["missing"]) + "."
         super().__init__(address, Handler)
+
+    def _record_startup_error(self, error):
+        missing = missing_connection_variables()
+        if missing:
+            self.startup_error = {"category": "configuration", "code": "missing_variables", "missing": missing}
+        elif isinstance(error, PyMongoError):
+            self.startup_error = sanitized_error(error)
+        elif isinstance(error, ValueError):
+            self.startup_error = {"category": "saved_data", "code": "verification_failed"}
+        else:
+            self.startup_error = sanitized_error(error)
 
     def server_close(self):
         if self.repository is not None:
@@ -91,6 +126,9 @@ class Handler(BaseHTTPRequestHandler):
     def _error(self, status, message):
         self._send(status, {"error": message})
 
+    def _unavailable(self):
+        self._send(503, {"error": self.server.repository_error, "diagnostic": self.server.startup_error})
+
     def do_GET(self):
         path = urlsplit(self.path).path
         if path in FILES:
@@ -100,10 +138,16 @@ class Handler(BaseHTTPRequestHandler):
             except OSError:
                 self._error(503, "Demo interface files are unavailable")
         elif path == "/healthz":
-            self._send(200, {"status": "ok", "saved_results_available": self.server.repository is not None})
+            result = {"status": "ok", "saved_results_available": self.server.repository is not None}
+            if self.server.startup_error is not None:
+                result["startup_error"] = self.server.startup_error
+            revision = os.environ.get("RENDER_GIT_COMMIT", "")
+            if re.fullmatch(r"[0-9a-f]{40}", revision):
+                result["git_commit"] = revision
+            self._send(200, result)
         elif path == "/api/state":
             if self.server.repository is None:
-                return self._error(503, self.server.repository_error)
+                return self._unavailable()
             try:
                 with self.server.repository_lock:
                     state = self.server.repository.state()
@@ -135,7 +179,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._same_origin():
             return self._error(403, "Placement requests must originate from this demo")
         if self.server.repository is None:
-            return self._error(503, self.server.repository_error)
+            return self._unavailable()
         try:
             size = int(self.headers.get("Content-Length", "0"))
             if not 1 <= size <= 65536 or self.headers.get("Content-Type", "").split(";")[0] != "application/json":

@@ -115,8 +115,11 @@ or Modelence database provisioning is performed.
 then `python -m demo_app`, bound to `0.0.0.0:$PORT`. `.python-version` selects the
 latest Python 3.11 patch on Render; local checks continue in existing Python 3.8.
 See [Render web services](https://render.com/docs/web-services) and
-[Python versions](https://render.com/docs/python-version). Public deployment is
-**not yet verified** and requires the user's Render account/dashboard step.
+[Python versions](https://render.com/docs/python-version). The user deployed
+**https://catalog-harness.onrender.com/**. Initial public checks reached the page
+and health endpoint, but saved data is **blocked**: `/healthz` returned
+`saved_results_available: false` and `/api/state` returned HTTP 503. Static hosting
+is verified; public Atlas reads and product interactions are not yet verified.
 
 In the hosting dashboard, set **CATALOG_MONGODB_URI** (secret) and
 **CATALOG_MONGODB_DATABASE** to the existing event Atlas database. Hosted startup
@@ -125,10 +128,13 @@ requires those explicit names and ignores any automatically provisioned
 the ignored `.env`. No OpenAI key is needed by the saved-results web server.
 `/healthz` reports process health and whether saved data loaded; `/api/state`
 reports a useful error if neither Atlas nor a complete fallback is available.
+Startup failures are cached as credential-free typed category/code diagnostics
+in `/healthz` and `/api/state`; missing variables expose names only. Fetching
+those endpoints does not retry Atlas connections or make model requests.
 Credentials are never served as static files. Store writes are limited to demo
 placements, with same-origin checks and no external shop access.
 
-Atlas reachability from the eventual host is **unverified**. If blocked, inspect
+Atlas reachability from Render is **unverified**. If blocked, inspect
 the host's outbound IP addresses and the event's Atlas networking policy with the
 event owner. Do not weaken TLS, change Atlas settings silently, or replace the
 event database. The lightweight server is intended for the hackathon demo; public
@@ -176,7 +182,7 @@ errors, and delivery recovery; live service ingestion remains unverified.
 
 ## Current verification
 
-The complete **147-test** suite passes in the existing Python 3.8 environment.
+The complete **150-test** suite passes in the existing Python 3.8 environment.
 Headless Chrome verifies saved metrics, product search/filter/selection, original
 fields and both policy outputs, exact instructions, profile switching and staged
 preview, safe text rendering, and desktop/mobile layouts. A live Atlas check

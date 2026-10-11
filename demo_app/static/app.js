@@ -342,7 +342,11 @@ async function api(path, body) {
     try { result = await response.json(); } catch (_) { throw new Error("invalid_server_response"); }
     if (!response.ok) {
       const error = result && result.error, code = typeof error === "string" ? error : error && error.code;
-      throw new Error(typeof code === "string" && /^[a-z0-9_]{1,80}$/.test(code) ? code : `http_${response.status}`);
+      const failure = new Error(typeof code === "string" && /^[a-z0-9_]{1,80}$/.test(code) ? code : `http_${response.status}`);
+      // These are the server's fixed, sanitized help messages, never driver
+      // exceptions. Render them only as text; no headers or config are shown.
+      if (typeof error === "string" && error.length <= 1500) failure.userMessage = error;
+      throw failure;
     }
     return result;
   } catch (error) {
@@ -380,7 +384,10 @@ async function refresh() {
     byId("source-banner").className = "source-banner error";
     byId("source-icon").textContent = "!";
     byId("source-label").textContent = "Saved demo data unavailable";
-    byId("source-notice").textContent = `Start the local demo server and refresh. Error category: ${error.message}. No automatic retries.`;
+    const local = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
+    const advice = error.userMessage || (local ? "Start the local demo server and refresh."
+      : "The deployed service cannot load saved results. Check its hosting configuration and Atlas access, then refresh.");
+    byId("source-notice").textContent = `${advice} Error category: ${error.message}. No automatic retries.`;
     byId("experiment-state").textContent = "UNAVAILABLE";
   } finally { button.disabled = false; }
 }
@@ -399,7 +406,7 @@ async function previewPlacements() {
     view.accepted.clear();
     view.previewSelected = new Set(preview.records.filter((record) => record.status === "ready").map((record) => record.source_record_id));
     placementStatus("Preview staged. Review the store paths below before accepting ready placements. No model calls.");
-  } catch (error) { placementStatus(`Preview failed: ${human(error.message)}.`, true); }
+  } catch (error) { placementStatus(`Preview failed: ${error.userMessage || human(error.message)}.`, true); }
   finally { view.busy = false; byId("preview-button").disabled = false; renderPreview(); }
 }
 
@@ -411,7 +418,7 @@ async function acceptPreview() {
     const result = await api("/api/placement/accept", {preview_id: view.preview.preview_id, source_record_ids: [...view.previewSelected]});
     for (const id of result.source_record_ids || []) { view.accepted.add(id); view.previewSelected.delete(id); }
     placementStatus(`Accepted ${number(result.accepted_count)} placement${result.accepted_count === 1 ? "" : "s"} for ${result.store_id}. ${result.notice || "Stored separately from supplier records and experiment results."}`);
-  } catch (error) { placementStatus(`Acceptance failed: ${human(error.message)}.`, true); }
+  } catch (error) { placementStatus(`Acceptance failed: ${error.userMessage || human(error.message)}.`, true); }
   finally { view.busy = false; renderPreview(); }
 }
 

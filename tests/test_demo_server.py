@@ -7,6 +7,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from demo_app.server import DemoServer, demo_connection
+from pymongo.errors import ServerSelectionTimeoutError, OperationFailure
 
 
 class DemoServerTests(unittest.TestCase):
@@ -87,6 +88,27 @@ class DemoServerTests(unittest.TestCase):
                 self.assertEqual(os.environ['MONGODB_URI'], 'explicit-event-database')
                 self.assertEqual(os.environ['MONGODB_DATABASE'], 'event-demo')
                 connect.assert_called_once()
+
+    def test_startup_diagnostics_report_missing_names_without_values(self):
+        with patch.dict(os.environ, {'PORT': '10000', 'MONGODB_URI': 'SECRET_WRONG_DATABASE'}, clear=True):
+            self.server._record_startup_error(ValueError('SECRET_DRIVER_TEXT'))
+        self.assertEqual(self.server.startup_error, {'category': 'configuration', 'code': 'missing_variables',
+            'missing': ['CATALOG_MONGODB_URI', 'CATALOG_MONGODB_DATABASE']})
+        with self.request('/healthz') as response:
+            body = json.load(response)
+        self.assertEqual(body['startup_error'], self.server.startup_error)
+        self.assertNotIn('SECRET', json.dumps(body))
+
+    def test_startup_driver_and_data_failures_are_typed_and_sanitized(self):
+        with patch.dict(os.environ, {'PORT': '10000', 'CATALOG_MONGODB_URI': 'SECRET_URI',
+                                   'CATALOG_MONGODB_DATABASE': 'event-demo'}, clear=True):
+            for error, category, code in (
+                    (ServerSelectionTimeoutError('SECRET_TOPOLOGY_HOST'), 'atlas', 'server_selection_timeout'),
+                    (OperationFailure('SECRET_URI', code=18), 'atlas', 'authentication_failed'),
+                    (ValueError('SECRET_DATA'), 'saved_data', 'verification_failed')):
+                self.server._record_startup_error(error)
+                self.assertEqual(self.server.startup_error, {'category': category, 'code': code})
+                self.assertNotIn('SECRET', json.dumps(self.server.startup_error))
 
 
 if __name__ == '__main__':

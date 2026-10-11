@@ -1,0 +1,13 @@
+{
+  "url": "https://catalog-harness.onrender.com/",
+  "checked_at": "2026-10-11T21:35:27Z",
+  "status": "static_hosting_reachable_saved_data_blocked",
+  "http_status": {"/": 200, "/healthz": 200, "/api/state": 503},
+  "saved_results_available": false,
+  "atlas_from_host_verified": false,
+  "browser_javascript_errors": 0,
+  "product_interactions_verified": false,
+  "model_calls_added": 0,
+  "frozen_evaluations_changed": false,
+  "next_check": "Use cached sanitized startup diagnostic to distinguish missing variables, Atlas access failure, or saved-result verification failure."
+}
